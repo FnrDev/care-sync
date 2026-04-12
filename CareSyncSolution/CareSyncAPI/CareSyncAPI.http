@@ -1,0 +1,6 @@
+@CareSyncAPI_HostAddress = http://localhost:5158
+
+GET {{CareSyncAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
