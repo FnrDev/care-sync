@@ -46,6 +46,38 @@ namespace CareSyncAPI.Controllers
             return Ok(result);
         }
 
+        // GET /api/doctors/by-specialization/{specId}
+        [HttpGet("by-specialization/{specId}")]
+        public async Task<IActionResult> GetBySpecialization(int specId)
+        {
+            var doctorSpecs = await _db.DoctorSpecializations
+                .Include(ds => ds.DoctorProfile)
+                    .ThenInclude(dp => dp.DoctorSpecializations)
+                        .ThenInclude(ds2 => ds2.Specialization)
+                .Where(ds => ds.SpecializationId == specId && ds.DoctorProfile.IsActive)
+                .ToListAsync();
+
+            var doctorProfiles = doctorSpecs.Select(ds => ds.DoctorProfile).DistinctBy(d => d.Id).ToList();
+
+            var userIds = doctorProfiles.Select(d => d.UserId).ToList();
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+            var result = doctorProfiles.Select(d => new
+            {
+                d.Id,
+                Name = users.GetValueOrDefault(d.UserId, "Unknown"),
+                d.LicenseNumber,
+                d.ConsultationDurationMin,
+                d.Bio,
+                Specializations = d.DoctorSpecializations
+                    .Select(ds => ds.Specialization.Name).ToList()
+            });
+
+            return Ok(result);
+        }
+
         // GET /api/doctors/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

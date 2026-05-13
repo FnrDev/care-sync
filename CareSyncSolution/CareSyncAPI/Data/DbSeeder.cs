@@ -22,12 +22,15 @@ namespace CareSyncAPI.Data
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             await SeedRolesAsync(roleManager);
+            await SeedAppointmentStatusesAsync(db);
             await SeedSpecializationsAsync(db);
 
             var specMap = await db.Specializations.ToDictionaryAsync(s => s.Name, s => s.Id);
             var cardiologyId = specMap["Cardiology"];
             var pediatricsId = specMap["Pediatrics"];
             var generalPracticeId = specMap["General Practice"];
+            var dermatologyId = specMap["Dermatology"];
+            var orthopedicsId = specMap["Orthopedics"];
 
             var admin = await EnsureUserAsync(userManager, "admin@caresync.local", "Admin@123", "System Admin", Roles.Admin);
             var reception = await EnsureUserAsync(userManager, "reception@caresync.local", "Reception@123", "Layla Mahmoud", Roles.Receptionist);
@@ -35,6 +38,8 @@ namespace CareSyncAPI.Data
             var drSmith = await EnsureUserAsync(userManager, "dr.smith@caresync.local", "Doctor@123", "Dr. John Smith", Roles.Doctor);
             var drJones = await EnsureUserAsync(userManager, "dr.jones@caresync.local", "Doctor@123", "Dr. Sarah Jones", Roles.Doctor);
             var drAhmed = await EnsureUserAsync(userManager, "dr.ahmed@caresync.local", "Doctor@123", "Dr. Ahmed Khalil", Roles.Doctor);
+            var drLee = await EnsureUserAsync(userManager, "dr.lee@caresync.local", "Doctor@123", "Dr. Emily Lee", Roles.Doctor);
+            var drKhan = await EnsureUserAsync(userManager, "dr.khan@caresync.local", "Doctor@123", "Dr. Omar Khan", Roles.Doctor);
 
             var p1User = await EnsureUserAsync(userManager, "patient1@caresync.local", "Patient@123", "Mohammed Ali", Roles.Patient);
             var p2User = await EnsureUserAsync(userManager, "patient2@caresync.local", "Patient@123", "Fatima Al-Sayed", Roles.Patient);
@@ -43,14 +48,18 @@ namespace CareSyncAPI.Data
             var drSmithProfile = await EnsureDoctorProfileAsync(db, drSmith.Id, "DOC-1001", 30, "Consultant Cardiologist with 15 years of experience.", specializationIds: new[] { cardiologyId });
             var drJonesProfile = await EnsureDoctorProfileAsync(db, drJones.Id, "DOC-1002", 20, "Pediatrician focused on early childhood development.", specializationIds: new[] { pediatricsId });
             var drAhmedProfile = await EnsureDoctorProfileAsync(db, drAhmed.Id, "DOC-1003", 30, "General practitioner with cardiology sub-specialization.", specializationIds: new[] { generalPracticeId, cardiologyId });
+            var drLeeProfile = await EnsureDoctorProfileAsync(db, drLee.Id, "DOC-1004", 25, "Dermatologist specializing in skin conditions and cosmetic procedures.", specializationIds: new[] { dermatologyId });
+            var drKhanProfile = await EnsureDoctorProfileAsync(db, drKhan.Id, "DOC-1005", 30, "Orthopedic surgeon with expertise in sports injuries.", specializationIds: new[] { orthopedicsId });
 
             await EnsureAvailabilityAsync(db, drSmithProfile.Id, new TimeOnly(9, 0), new TimeOnly(17, 0));
             await EnsureAvailabilityAsync(db, drJonesProfile.Id, new TimeOnly(10, 0), new TimeOnly(16, 0));
             await EnsureAvailabilityAsync(db, drAhmedProfile.Id, new TimeOnly(8, 0), new TimeOnly(18, 0));
+            await EnsureAvailabilityAsync(db, drLeeProfile.Id, new TimeOnly(9, 0), new TimeOnly(15, 0));
+            await EnsureAvailabilityAsync(db, drKhanProfile.Id, new TimeOnly(8, 0), new TimeOnly(16, 0));
 
-            var patient1 = await EnsurePatientProfileAsync(db, p1User.Id, "880101001001", "PAT-0001", new DateOnly(1988, 1, 1), "Male", "Manama, Bahrain", "O+", "Aisha Ali", "+97333111222");
-            var patient2 = await EnsurePatientProfileAsync(db, p2User.Id, "920315456002", "PAT-0002", new DateOnly(1992, 3, 15), "Female", "Riffa, Bahrain", "A-", "Omar Al-Sayed", "+97333333444");
-            var patient3 = await EnsurePatientProfileAsync(db, p3User.Id, "750722789003", "PAT-0003", new DateOnly(1975, 7, 22), "Male", "Muharraq, Bahrain", "B+", "Emma Wilson", "+97333555666");
+            var patient1 = await EnsurePatientProfileAsync(db, p1User.Id, "880101234", "PAT-0001", new DateOnly(1988, 1, 1), "Male", "Manama, Bahrain", "O+", "Aisha Ali", "+97333111222");
+            var patient2 = await EnsurePatientProfileAsync(db, p2User.Id, "920315567", "PAT-0002", new DateOnly(1992, 3, 15), "Female", "Riffa, Bahrain", "A-", "Omar Al-Sayed", "+97333333444");
+            var patient3 = await EnsurePatientProfileAsync(db, p3User.Id, "750722891", "PAT-0003", new DateOnly(1975, 7, 22), "Male", "Muharraq, Bahrain", "B+", "Emma Wilson", "+97333555666");
 
             if (!await db.Appointments.AnyAsync())
             {
@@ -220,6 +229,21 @@ namespace CareSyncAPI.Data
                 if (!await roleManager.RoleExistsAsync(role))
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
+        }
+
+        private static async Task SeedAppointmentStatusesAsync(ApplicationDbContext db)
+        {
+            if (await db.AppointmentStatuses.AnyAsync()) return;
+
+            await db.Database.ExecuteSqlRawAsync(@"
+                SET IDENTITY_INSERT [AppointmentStatus] ON;
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (1, 'Requested');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (2, 'Confirmed');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (3, 'CheckedIn');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (5, 'Completed');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (6, 'Cancelled');
+                SET IDENTITY_INSERT [AppointmentStatus] OFF;
+            ");
         }
 
         private static async Task SeedSpecializationsAsync(ApplicationDbContext db)
