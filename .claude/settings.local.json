@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"AppointmentStatus\" /mnt/c/Users/pvppl/Desktop/care-sync/CareSyncSolution/CareSyncAPI/Migrations/*.cs)",
+      "Bash(find:*)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build CareSyncAPI/CareSyncAPI.csproj)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build CareMVC/CareMVC.csproj)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build)",
+      "Bash(ls:*)"
+    ]
+  }
+}
