@@ -1,0 +1,125 @@
+@model ReceptionistDashboardViewModel
+@{
+    ViewData["Title"] = "Receptionist Dashboard";
+}
+
+<h3 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Receptionist Dashboard</h3>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-warning shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-warning">@Model.RequestedCount</h3>
+                <small class="text-muted">Requested</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-info shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-info">@Model.ConfirmedCount</h3>
+                <small class="text-muted">Confirmed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-primary">@Model.CheckedInCount</h3>
+                <small class="text-muted">Checked In</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-success">@Model.CompletedCount</h3>
+                <small class="text-muted">Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-danger shadow-sm">
+            <div class="card-body text-center">
+                <h3 class="text-danger">@Model.CancelledCount</h3>
+                <small class="text-muted">Cancelled</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-calendar-day me-2"></i>Today's Appointments</h5>
+        <a asp-action="BookForPatient" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Book for Patient
+        </a>
+    </div>
+    <div class="card-body">
+        @if (Model.TodayAppointments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Specialization</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var apt in Model.TodayAppointments)
+                        {
+                            <tr>
+                                <td>@apt.StartTime - @apt.EndTime</td>
+                                <td>@apt.Patient</td>
+                                <td>@apt.Doctor</td>
+                                <td>@apt.Specialization</td>
+                                <td><partial name="_StatusBadge" model="@apt.Status" /></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        @if (apt.Status == "Requested")
+                                        {
+                                            <form asp-action="ConfirmAppointment" asp-route-id="@apt.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-info btn-sm me-1" title="Confirm">
+                                                    <i class="bi bi-check-lg"></i> Confirm
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (apt.Status == "Confirmed")
+                                        {
+                                            <form asp-action="CheckIn" asp-route-id="@apt.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-primary btn-sm me-1" title="Check In">
+                                                    <i class="bi bi-box-arrow-in-right"></i> Check In
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (apt.Status == "Requested" || apt.Status == "Confirmed")
+                                        {
+                                            <form asp-action="CancelAppointment" asp-route-id="@apt.Id" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Cancel this appointment?');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancel">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-calendar-x display-4"></i>
+                <p class="mt-2">No appointments scheduled for today.</p>
+            </div>
+        }
+    </div>
+</div>

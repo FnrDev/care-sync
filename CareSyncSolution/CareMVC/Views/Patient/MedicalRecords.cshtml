@@ -1,0 +1,104 @@
+@model List<MedicalRecordViewModel>
+@{
+    ViewData["Title"] = "Medical Records";
+}
+
+<h3 class="mb-4"><i class="bi bi-journal-medical me-2"></i>Medical Records</h3>
+
+@if (Model.Any())
+{
+    <div class="accordion" id="medicalRecords">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var record = Model[i];
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#record-@record.Id">
+                        <div class="d-flex justify-content-between w-100 me-3">
+                            <span>
+                                <strong>@record.AppointmentDate.ToString("dd MMM yyyy")</strong>
+                                &mdash; Dr. @record.DoctorName
+                            </span>
+                            <span class="badge bg-secondary">@record.Diagnosis</span>
+                        </div>
+                    </button>
+                </h2>
+                <div id="record-@record.Id" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
+                     data-bs-parent="#medicalRecords">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-clipboard2-pulse me-1"></i>Diagnosis</h6>
+                                <p>@record.Diagnosis</p>
+
+                                @if (!string.IsNullOrEmpty(record.Treatment))
+                                {
+                                    <h6><i class="bi bi-bandaid me-1"></i>Treatment</h6>
+                                    <p>@record.Treatment</p>
+                                }
+
+                                @if (!string.IsNullOrEmpty(record.DoctorNotes))
+                                {
+                                    <h6><i class="bi bi-chat-text me-1"></i>Doctor Notes</h6>
+                                    <p>@record.DoctorNotes</p>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                @if (record.Prescription != null)
+                                {
+                                    <div class="card bg-light">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="bi bi-capsule me-1"></i>Prescription</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted small mb-2">
+                                                Issued: @record.Prescription.DateIssued.ToString("dd MMM yyyy")
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(record.Prescription.Notes))
+                                            {
+                                                <p class="small"><em>@record.Prescription.Notes</em></p>
+                                            }
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Medication</th>
+                                                        <th>Dosage</th>
+                                                        <th>Frequency</th>
+                                                        <th>Duration</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in record.Prescription.Items)
+                                                    {
+                                                        <tr>
+                                                            <td>@item.MedicationName</td>
+                                                            <td>@item.Dosage</td>
+                                                            <td>@item.Frequency</td>
+                                                            <td>@item.DurationDays days</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted"><em>No prescription for this visit.</em></p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x display-4"></i>
+        <p class="mt-2">No medical records found.</p>
+    </div>
+}

@@ -1,4 +1,8 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
+// Auto-dismiss alerts after 5 seconds
+$(function () {
+    setTimeout(function () {
+        $('.alert-dismissible').fadeOut(500, function () {
+            $(this).remove();
+        });
+    }, 5000);
+});

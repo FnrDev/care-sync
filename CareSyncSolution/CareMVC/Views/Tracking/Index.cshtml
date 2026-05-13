@@ -1,0 +1,129 @@
+@model TrackingViewModel
+@{
+    ViewData["Title"] = "Track Appointment";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-search me-2"></i>Track Your Appointment</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Enter your CPR number to look up your appointments. Reference number is optional.</p>
+
+                <form asp-action="Index" method="post">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label">CPR Number</label>
+                            <input asp-for="CPR" class="form-control" placeholder="e.g. 041203780" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Reference Number</label>
+                            <input asp-for="RefNumber" class="form-control" placeholder="e.g. PAT-0001" />
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </div>
+                </form>
+
+                @if (Model.ErrorMessage != null)
+                {
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i> @Model.ErrorMessage
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Result != null)
+        {
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person me-2"></i>Patient Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>CPR:</strong> @Model.Result.Patient.CPR</p>
+                    <p><strong>Reference Number:</strong> @Model.Result.Patient.PatientRefNumber</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Upcoming Appointments</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Result.UpcomingAppointments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Doctor</th>
+                                        <th>Specialization</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var apt in Model.Result.UpcomingAppointments)
+                                    {
+                                        <tr>
+                                            <td>@apt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                            <td>@apt.StartTime - @apt.EndTime</td>
+                                            <td>@apt.Doctor</td>
+                                            <td>@apt.Specialization</td>
+                                            <td><partial name="_StatusBadge" model="@apt.Status" /></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No upcoming appointments found.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Visits</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Result.RecentVisits.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Doctor</th>
+                                        <th>Diagnosis</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var visit in Model.Result.RecentVisits)
+                                    {
+                                        <tr>
+                                            <td>@visit.CreatedAt.ToString("dd MMM yyyy")</td>
+                                            <td>@visit.Doctor</td>
+                                            <td>@visit.Diagnosis</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No recent visits found.</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

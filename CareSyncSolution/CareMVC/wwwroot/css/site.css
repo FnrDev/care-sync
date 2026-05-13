@@ -21,11 +21,45 @@ body {
   margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Booking flow cards */
+.spec-card:hover, .doctor-card:hover {
+  border-color: #0d6efd !important;
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+.spec-card, .doctor-card {
+  transition: all 0.2s ease;
+}
+
+/* Time slot buttons */
+.slot-btn {
+  min-width: 120px;
+}
+
+/* Status badge sizing */
+.badge {
+  font-size: 0.8em;
+}
+
+/* Card hover effect */
+.card.shadow-sm {
+  transition: box-shadow 0.2s ease;
+}
+
+.card.shadow-sm:hover {
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important;
+}
+
+/* Alert auto-dismiss styling */
+.alert {
+  transition: opacity 0.5s ease;
 }

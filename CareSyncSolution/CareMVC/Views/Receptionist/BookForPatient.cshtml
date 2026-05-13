@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Book for Patient";
+}
+
+<h3 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Book Appointment for Patient</h3>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-search me-2"></i>Find Patient</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Patient CPR</label>
+                <div class="input-group">
+                    <input type="text" id="patientCpr" class="form-control" placeholder="Enter patient CPR number" />
+                    <button type="button" id="searchBtn" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <div id="patientResult" style="display:none;">
+                    <div class="alert alert-success mb-0 py-2">
+                        <strong id="patientNameDisplay"></strong>
+                        <span class="text-muted ms-2" id="patientRefDisplay"></span>
+                        <a id="bookLink" class="btn btn-sm btn-success ms-3">
+                            <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+                        </a>
+                    </div>
+                </div>
+                <div id="patientNotFound" style="display:none;">
+                    <div class="alert alert-warning mb-0 py-2">No patient found with this CPR.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#searchBtn').on('click', function () {
+                var cpr = $('#patientCpr').val().trim();
+                if (!cpr) return;
+
+                $('#patientResult, #patientNotFound').hide();
+
+                $.get('/Receptionist/SearchPatient', { cpr: cpr }, function (data) {
+                    if (data.found) {
+                        $('#patientNameDisplay').text(data.patient.fullName);
+                        $('#patientRefDisplay').text('(Ref: ' + data.patient.patientRefNumber + ')');
+                        $('#bookLink').attr('href', '/Booking/Index?patientProfileId=' +
+                            data.patient.patientProfileId + '&patientName=' +
+                            encodeURIComponent(data.patient.fullName));
+                        $('#patientResult').show();
+                    } else {
+                        $('#patientNotFound').show();
+                    }
+                });
+            });
+
+            $('#patientCpr').on('keypress', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#searchBtn').click();
+                }
+            });
+        });
+    </script>
+}

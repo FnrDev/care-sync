@@ -1,0 +1,90 @@
+@model BookingViewModel
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<h3 class="mb-4">
+    <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+    @if (Model.PatientName != null)
+    {
+        <small class="text-muted">for @Model.PatientName</small>
+    }
+</h3>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form id="bookingForm" asp-action="Confirm" method="post">
+            <input type="hidden" name="patientProfileId" value="@Model.PatientProfileId" />
+
+            <!-- Step 1: Specialization -->
+            <div id="step1" class="booking-step">
+                <h5 class="mb-3"><span class="badge bg-primary rounded-pill me-2">1</span>Select Specialization</h5>
+                <div class="row g-3">
+                    @foreach (var spec in Model.Specializations)
+                    {
+                        <div class="col-md-4">
+                            <div class="card spec-card border" data-spec-id="@spec.Id" style="cursor:pointer;">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title mb-1">@spec.Name</h6>
+                                    @if (spec.Description != null)
+                                    {
+                                        <small class="text-muted">@spec.Description</small>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <input type="hidden" name="specializationId" id="specializationId" />
+            </div>
+
+            <!-- Step 2: Doctor -->
+            <div id="step2" class="booking-step mt-4" style="display:none;">
+                <h5 class="mb-3"><span class="badge bg-primary rounded-pill me-2">2</span>Select Doctor</h5>
+                <div id="doctorList" class="row g-3">
+                    <!-- Loaded via AJAX -->
+                </div>
+                <input type="hidden" name="doctorProfileId" id="doctorProfileId" />
+            </div>
+
+            <!-- Step 3: Date & Time -->
+            <div id="step3" class="booking-step mt-4" style="display:none;">
+                <h5 class="mb-3"><span class="badge bg-primary rounded-pill me-2">3</span>Select Date & Time</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Appointment Date</label>
+                        <input type="date" id="appointmentDate" name="appointmentDate"
+                               class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Available Time Slots</label>
+                        <div id="slotContainer" class="d-flex flex-wrap gap-2">
+                            <p class="text-muted">Select a date to see available slots.</p>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="startTime" id="startTime" />
+            </div>
+
+            <!-- Step 4: Confirm -->
+            <div id="step4" class="booking-step mt-4" style="display:none;">
+                <h5 class="mb-3"><span class="badge bg-primary rounded-pill me-2">4</span>Confirm Booking</h5>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <p><strong>Specialization:</strong> <span id="confirmSpec"></span></p>
+                        <p><strong>Doctor:</strong> <span id="confirmDoctor"></span></p>
+                        <p><strong>Date:</strong> <span id="confirmDate"></span></p>
+                        <p><strong>Time:</strong> <span id="confirmTime"></span></p>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-3">
+                    <i class="bi bi-check-circle me-1"></i>Confirm Appointment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/booking.js" asp-append-version="true"></script>
+}
