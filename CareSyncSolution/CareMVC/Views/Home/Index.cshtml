@@ -2,82 +2,118 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="text-center py-5">
-    <h1 class="display-4 fw-bold text-primary">
-        <i class="bi bi-heart-pulse me-2"></i>CareSync
-    </h1>
-    <p class="lead text-muted mt-3">Your trusted healthcare appointment management system</p>
-
-    <div class="row justify-content-center mt-5 g-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <i class="bi bi-search display-4 text-primary"></i>
-                    <h5 class="mt-3">Track Appointment</h5>
-                    <p class="text-muted">Look up your appointment status using your CPR and reference number.</p>
-                    <a asp-controller="Tracking" asp-action="Index" class="btn btn-outline-primary">
-                        Track Now
-                    </a>
-                </div>
+<!-- ── Hero ─────────────────────────────────────────── -->
+<section class="cs-hero">
+    <div class="cs-hero-inner">
+        <div class="cs-hero-content">
+            <span class="cs-hero-badge">
+                <i class="bi bi-heart-pulse"></i> Trusted Healthcare Platform
+            </span>
+            <h1 class="cs-hero-title">Your Health,<br>Our Priority</h1>
+            <p class="cs-hero-sub">
+                Comprehensive appointment management for patients and healthcare professionals.
+                Book, track, and manage your medical care with ease.
+            </p>
+            <div class="cs-hero-btns">
+                <a asp-controller="Booking" asp-action="Index" class="cs-btn-solid">
+                    <i class="bi bi-calendar-plus"></i> Book Appointment
+                </a>
+                <a asp-controller="Tracking" asp-action="Index" class="cs-btn-outline">
+                    <i class="bi bi-search"></i> Track Appointment
+                </a>
             </div>
         </div>
 
-        @if (ViewBag.IsAuthenticated != true)
-        {
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-box-arrow-in-right display-4 text-success"></i>
-                        <h5 class="mt-3">Patient / Staff Login</h5>
-                        <p class="text-muted">Sign in to manage appointments, view records, or manage the queue.</p>
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success">
-                            Sign In
-                        </a>
-                    </div>
+        <div class="cs-hero-stats">
+            <div class="cs-stat">
+                <div class="cs-stat-icon"><i class="bi bi-person-check-fill"></i></div>
+                <div class="cs-stat-body">
+                    <span class="cs-stat-num">500+</span>
+                    <span class="cs-stat-lbl">Expert Doctors</span>
                 </div>
             </div>
-        }
-        else if (ViewBag.UserRole == "Patient")
-        {
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-calendar-plus display-4 text-success"></i>
-                        <h5 class="mt-3">Book Appointment</h5>
-                        <p class="text-muted">Schedule an appointment with your preferred doctor.</p>
-                        <a asp-controller="Booking" asp-action="Index" class="btn btn-outline-success">
-                            Book Now
-                        </a>
-                    </div>
+            <div class="cs-stat">
+                <div class="cs-stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="cs-stat-body">
+                    <span class="cs-stat-num">10,000+</span>
+                    <span class="cs-stat-lbl">Patients Served</span>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-journal-medical display-4 text-info"></i>
-                        <h5 class="mt-3">Medical Records</h5>
-                        <p class="text-muted">View your visit history, diagnoses, and prescriptions.</p>
-                        <a asp-controller="Patient" asp-action="MedicalRecords" class="btn btn-outline-info">
-                            View Records
-                        </a>
-                    </div>
+            <div class="cs-stat">
+                <div class="cs-stat-icon"><i class="bi bi-star-fill"></i></div>
+                <div class="cs-stat-body">
+                    <span class="cs-stat-num">98%</span>
+                    <span class="cs-stat-lbl">Satisfaction Rate</span>
                 </div>
             </div>
-        }
-        else if (ViewBag.UserRole == "Receptionist")
-        {
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <i class="bi bi-speedometer2 display-4 text-success"></i>
-                        <h5 class="mt-3">Manage Queue</h5>
-                        <p class="text-muted">View today's appointments and manage check-ins.</p>
-                        <a asp-controller="Receptionist" asp-action="Dashboard" class="btn btn-outline-success">
-                            Go to Dashboard
-                        </a>
-                    </div>
-                </div>
-            </div>
-        }
+        </div>
     </div>
-</div>
+</section>
+
+<!-- ── Quick Actions (authenticated users only) ──────── -->
+@if (ViewBag.IsAuthenticated == true)
+{
+    <div class="container mt-5 mb-4">
+        <p class="text-uppercase fw-bold mb-3" style="font-size:.75rem;letter-spacing:.1em;color:var(--muted);">
+            Quick Actions
+        </p>
+        <div class="row g-3">
+            @if (ViewBag.UserRole == "Patient")
+            {
+                <div class="col-md-4">
+                    <a asp-controller="Booking" asp-action="Index" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-calendar-plus"></i></div>
+                        <div>
+                            <div class="cs-action-title">Book Appointment</div>
+                            <div class="cs-action-sub">Schedule with your preferred doctor</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Patient" asp-action="Dashboard" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <div class="cs-action-title">My Dashboard</div>
+                            <div class="cs-action-sub">View appointments and history</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a asp-controller="Patient" asp-action="MedicalRecords" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-journal-medical"></i></div>
+                        <div>
+                            <div class="cs-action-title">Medical Records</div>
+                            <div class="cs-action-sub">Access your visit history</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+            }
+            @if (ViewBag.UserRole == "Receptionist")
+            {
+                <div class="col-md-6">
+                    <a asp-controller="Receptionist" asp-action="Dashboard" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <div class="cs-action-title">Receptionist Dashboard</div>
+                            <div class="cs-action-sub">Manage appointments and queue</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a asp-controller="Receptionist" asp-action="BookForPatient" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-calendar-plus"></i></div>
+                        <div>
+                            <div class="cs-action-title">Book for Patient</div>
+                            <div class="cs-action-sub">Schedule appointments for patients</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
