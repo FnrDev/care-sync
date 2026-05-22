@@ -9,6 +9,7 @@ namespace CareSyncAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AppointmentsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
@@ -95,7 +96,6 @@ namespace CareSyncAPI.Controllers
         // PROTECTED - requires JWT
         // GET /api/appointments
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var appointments = await _db.Appointments
@@ -212,7 +212,6 @@ namespace CareSyncAPI.Controllers
 
         // GET /api/appointments/available-slots?doctorId=1&date=2026-05-15
         [HttpGet("available-slots")]
-        [Authorize]
         public async Task<IActionResult> GetAvailableSlots([FromQuery] int doctorId, [FromQuery] DateTime date)
         {
             var doctor = await _db.DoctorProfiles.FindAsync(doctorId);
@@ -384,7 +383,6 @@ namespace CareSyncAPI.Controllers
 
         // PUT /api/appointments/{id}/status
         [HttpPut("{id}/status")]
-        [Authorize]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
         {
             var appointment = await _db.Appointments
