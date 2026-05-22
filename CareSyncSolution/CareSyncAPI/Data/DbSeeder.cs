@@ -242,6 +242,7 @@ namespace CareSyncAPI.Data
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (3, 'CheckedIn');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (5, 'Completed');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (6, 'Cancelled');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (7, 'Missed');
                 SET IDENTITY_INSERT [AppointmentStatus] OFF;
             ");
         }
