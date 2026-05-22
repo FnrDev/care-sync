@@ -1,6 +1,28 @@
 # CareSync
 A system for managing clinic appointments, doctor schedules, and resources, helping streamline operations and improve patient booking efficiency.
 
+## Database Setup
+
+The API targets SQL Server LocalDB (`(localdb)\mssqllocaldb`, database `CareSyncDb`).
+
+1. **Apply migrations** — from the solution root:
+   ```
+   dotnet ef database update --project CareSyncSolution/CareSyncAPI
+   ```
+   (equivalent to `Update-Database` in the Visual Studio Package Manager Console).
+
+2. **Seed data** — seeding runs automatically on API startup. `Program.cs` calls
+   `DbSeeder.SeedAsync` (`CareSyncAPI/Data/DbSeeder.cs`), so just run the API once:
+   ```
+   dotnet run --project CareSyncSolution/CareSyncAPI
+   ```
+   The seeder is idempotent — every section checks for existing rows first, so
+   restarts are safe. It creates roles, appointment statuses, specializations,
+   users, doctor/patient profiles, doctor availability, and sample appointments.
+
+> `DbSeeder` (run via `Program.cs`) is the source of truth for seed data.
+> `Scripts/SeedData.sql` is a standalone SQL alternative covering the same data.
+
 ## API Endpoints
 
 | Route | Method | Auth | Purpose |
@@ -38,10 +60,24 @@ A system for managing clinic appointments, doctor schedules, and resources, help
 | Patient | patient2@caresync.local | Patient@123 |
 | Patient | patient3@caresync.local | Patient@123 |
 
-## Seeded Patient CPRs (for tracking page)
+## Seeded Patients & Appointments
 
-| Patient | CPR | Ref |
-|---|---|---|
-| Mohammed Ali | 880101234 | PAT-0001 |
-| Fatima Al-Sayed | 920315567 | PAT-0002 |
-| James Wilson | 750722891 | PAT-0003 |
+Patient CPRs (for the public tracking / lookup page):
+
+| Patient | CPR | Ref | Login |
+|---|---|---|---|
+| Mohammed Ali | 880101234 | PAT-0001 | patient1@caresync.local |
+| Fatima Al-Sayed | 920315567 | PAT-0002 | patient2@caresync.local |
+| James Wilson | 750722891 | PAT-0003 | patient3@caresync.local |
+
+Sample appointments created by the seeder (only when the `Appointment` table is
+empty; dates are relative to the day the seeder first runs):
+
+| Patient | Doctor | Specialization | When | Time | Status |
+|---|---|---|---|---|---|
+| Mohammed Ali | Dr. John Smith | Cardiology | 5 days ago | 10:00 | Completed |
+| Mohammed Ali | Dr. Ahmed Khalil | General Practice | in 2 days | 09:00 | Requested |
+| Fatima Al-Sayed | Dr. Sarah Jones | Pediatrics | 3 days ago | 11:00 | Completed |
+| Fatima Al-Sayed | Dr. John Smith | Cardiology | 7 days ago | 09:00 | Cancelled |
+| James Wilson | Dr. Ahmed Khalil | General Practice | today | 14:00 | Confirmed |
+| James Wilson | Dr. John Smith | Cardiology | today | 15:00 | CheckedIn |
