@@ -397,7 +397,8 @@ namespace CareSyncAPI.Controllers
             {
                 { 1, new[] { 2, 6 } },  // Requested -> Confirmed, Cancelled
                 { 2, new[] { 3, 6 } },  // Confirmed -> CheckedIn, Cancelled
-                { 3, new[] { 5 } }       // CheckedIn -> Completed
+                { 3, new[] { 4, 6 } },  // CheckedIn -> InProgress, Cancelled
+                { 4, new[] { 5, 7 } }   // InProgress -> Completed, Missed
             };
 
             if (!validTransitions.ContainsKey(appointment.StatusId)
