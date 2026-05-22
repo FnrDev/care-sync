@@ -49,7 +49,6 @@ namespace CareMVC.Controllers
                 return View(model);
             }
 
-            // Store in session
             HttpContext.Session.SetString(SessionKeys.JwtToken, response.Token);
             HttpContext.Session.SetString(SessionKeys.UserId, response.User.Id);
             HttpContext.Session.SetString(SessionKeys.UserEmail, response.User.Email);
