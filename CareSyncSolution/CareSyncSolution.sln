@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.5.11801.241 oobstable
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37012.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareMVC", "CareMVC\CareMVC.csproj", "{B87A91E3-EEB2-4570-97A5-D5693EF44C58}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareSyncAPI", "CareSyncAPI\CareSyncAPI.csproj", "{697EB774-556C-4A24-8E74-315F70F42B01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareSyncReport", "CareSyncReport\CareSyncReport.csproj", "{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
