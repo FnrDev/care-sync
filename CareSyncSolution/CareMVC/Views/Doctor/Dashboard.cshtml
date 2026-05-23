@@ -1,0 +1,158 @@
+﻿@model DoctorDashboardViewModel
+@{
+    ViewData["Title"] = "Doctor Dashboard";
+}
+
+<h3 class="mb-1">
+    <i class="bi bi-person-badge me-2"></i>@Model.DoctorFullName
+</h3>
+<p class="text-muted mb-4">
+    <small><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.ToString("dddd, dd MMMM yyyy")</small>
+    &nbsp;·&nbsp;
+    <small>License: @Model.LicenseNumber</small>
+</p>
+
+<partial name="_SuccessErrorAlerts" />
+
+@* Quick Stats *@
+<div class="row mb-4 g-3">
+    <div class="col-md-4">
+        <div class="card border-primary shadow-sm text-center">
+            <div class="card-body">
+                <h2 class="text-primary">@Model.TotalToday</h2>
+                <p class="text-muted mb-0"><i class="bi bi-calendar-day me-1"></i>Today's Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success shadow-sm text-center">
+            <div class="card-body">
+                <h2 class="text-success">@Model.Completed</h2>
+                <p class="text-muted mb-0"><i class="bi bi-check-circle me-1"></i>Completed Today</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning shadow-sm text-center">
+            <div class="card-body">
+                <h2 class="text-warning">@Model.Pending</h2>
+                <p class="text-muted mb-0"><i class="bi bi-hourglass-split me-1"></i>Pending</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Today's Appointments *@
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Today's Appointments</h5>
+        <span class="badge bg-primary rounded-pill">@Model.TotalToday</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.TodaysAppointments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>Patient</th>
+                            <th>CPR</th>
+                            <th>Specialization</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appt in Model.TodaysAppointments)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@appt.StartTime.ToString("hh:mm tt")</strong>
+                                    <small class="text-muted d-block">→ @appt.EndTime.ToString("hh:mm tt")</small>
+                                </td>
+                                <td>@appt.PatientName</td>
+                                <td><code>@appt.PatientCPR</code></td>
+                                <td>@appt.Specialization</td>
+                                <td>
+                                    <partial name="_StatusBadge" model="@appt.StatusName" />
+                                </td>
+                                <td>
+                                    @if (appt.StatusName == "Confirmed" || appt.StatusName == "CheckedIn")
+                                    {
+                                        <a asp-action="StartVisit" asp-route-id="@appt.Id"
+                                           class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-play-circle"></i> Start Visit
+                                        </a>
+                                    }
+                                    @if (appt.StatusName == "Completed" && appt.HasVisitRecord)
+                                    {
+                                        <a asp-action="VisitRecord" asp-route-id="@appt.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-file-medical"></i> View Record
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x display-4"></i>
+                <p class="mt-2">No appointments scheduled for today.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@* My Patients *@
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-people me-2"></i>My Patients</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.MyPatients.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>CPR</th>
+                            <th>Ref #</th>
+                            <th>Last Visit</th>
+                            <th>Total Appointments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.MyPatients)
+                        {
+                            <tr>
+                                <td><strong>@p.FullName</strong></td>
+                                <td><code>@p.CPR</code></td>
+                                <td>@p.PatientRefNumber</td>
+                                <td>@(p.LastVisit?.ToString("dd MMM yyyy") ?? "—")</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        @p.TotalAppointments
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-person-x display-4"></i>
+                <p class="mt-2">No patients yet.</p>
+            </div>
+        }
+    </div>
+</div>

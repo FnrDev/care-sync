@@ -66,6 +66,14 @@
                                 </a>
                             </li>
                         }
+                        @if (ViewBag.UserRole == "Doctor")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Doctor" asp-action="Dashboard">
+                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                                </a>
+                            </li>
+                        }
                     </ul>
                     <ul class="navbar-nav align-items-center gap-2">
                         @if (ViewBag.IsAuthenticated == true)
