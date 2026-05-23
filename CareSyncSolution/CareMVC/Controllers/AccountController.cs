@@ -72,6 +72,7 @@ namespace CareMVC.Controllers
             {
                 "Patient" => RedirectToAction("Dashboard", "Patient"),
                 "Receptionist" => RedirectToAction("Dashboard", "Receptionist"),
+                "Doctor" => RedirectToAction("Dashboard", "Doctor"),
                 _ => RedirectToAction("Index", "Home")
             };
         }
