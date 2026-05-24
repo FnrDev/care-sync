@@ -7,6 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Views\Doctor\VisitRecord.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\CareSyncAPI\CareSyncAPI.csproj" />
 	</ItemGroup>
 
