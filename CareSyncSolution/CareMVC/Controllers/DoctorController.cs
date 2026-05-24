@@ -102,5 +102,110 @@ namespace CareMVC.Controllers
 
             return View(vm);
         }
+
+        // POST /Doctor/UpdateStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus(int appointmentId, int newStatusId, string? cancellationReason)
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            var appointment = await _db.Appointments
+                .Include(a => a.Status)
+                .FirstOrDefaultAsync(a => a.Id == appointmentId);
+
+            if (appointment == null)
+            {
+                TempData["Error"] = "Appointment not found.";
+                return RedirectToAction("Dashboard");
+            }
+
+            // Validate this doctor owns this appointment
+            var doctorProfile = await _db.DoctorProfiles
+                .FirstOrDefaultAsync(d => d.UserId == UserId);
+
+            if (doctorProfile == null || appointment.DoctorProfileId != doctorProfile.Id)
+            {
+                TempData["Error"] = "Unauthorized.";
+                return RedirectToAction("Dashboard");
+            }
+
+            // Valid transitions a Doctor can make
+            var allowedTransitions = new Dictionary<int, List<int>>
+    {
+        { 2, new List<int> { 4, 6 } },   // Confirmed → InProgress or Cancelled
+        { 3, new List<int> { 4, 6 } },   // CheckedIn → InProgress or Cancelled
+        { 4, new List<int> { 5 } },       // InProgress → Completed
+    };
+
+            if (!allowedTransitions.TryGetValue(appointment.StatusId, out var allowed)
+                || !allowed.Contains(newStatusId))
+            {
+                TempData["Error"] = $"Invalid status transition from '{appointment.Status.Name}'.";
+                return RedirectToAction("Dashboard");
+            }
+
+            var previousStatusId = appointment.StatusId;
+
+            appointment.StatusId = newStatusId;
+            appointment.UpdatedAt = DateTime.UtcNow;
+
+            if (newStatusId == 6 && !string.IsNullOrWhiteSpace(cancellationReason))
+                appointment.CancellationReason = cancellationReason;
+
+            // Log history
+            _db.AppointmentStatusHistories.Add(new CareSyncAPI.Models.AppointmentStatusHistory
+            {
+                AppointmentId = appointment.Id,
+                PreviousStatusId = previousStatusId,
+                NewStatusId = newStatusId,
+                ChangedAt = DateTime.UtcNow,
+                ChangedById = UserId!,
+                Notes = newStatusId == 6 ? cancellationReason : null
+            });
+
+            // Fire notification to patient
+            _db.Notifications.Add(new CareSyncAPI.Models.Notification
+            {
+                UserId = (await _db.PatientProfiles
+                    .FirstOrDefaultAsync(p => p.Id == appointment.PatientProfileId))!.UserId,
+                Title = GetNotificationTitle(newStatusId),
+                Message = GetNotificationMessage(newStatusId, UserFullName ?? "Your doctor"),
+                Type = "AppointmentUpdate",
+                RelatedEntityId = appointment.Id,
+                RelatedEntityType = "Appointment",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"Appointment status updated to '{GetStatusName(newStatusId)}'.";
+            return RedirectToAction("Dashboard");
+        }
+
+        // ── Helpers ──
+        private static string GetStatusName(int statusId) => statusId switch
+        {
+            4 => "InProgress",
+            5 => "Completed",
+            6 => "Cancelled",
+            _ => "Unknown"
+        };
+
+        private static string GetNotificationTitle(int statusId) => statusId switch
+        {
+            4 => "Your visit has started",
+            5 => "Visit completed",
+            6 => "Appointment cancelled",
+            _ => "Appointment update"
+        };
+
+        private static string GetNotificationMessage(int statusId, string doctorName) => statusId switch
+        {
+            4 => $"Dr. {doctorName} has started your visit.",
+            5 => $"Your visit with Dr. {doctorName} is complete. Check your records for notes.",
+            6 => $"Your appointment with Dr. {doctorName} has been cancelled.",
+            _ => "Your appointment status has been updated."
+        };
     }
 }
