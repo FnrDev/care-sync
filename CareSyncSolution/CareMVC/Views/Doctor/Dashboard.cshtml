@@ -80,10 +80,32 @@
                                 <td>
                                     @if (appt.StatusName == "Confirmed" || appt.StatusName == "CheckedIn")
                                     {
-                                        <a asp-action="StartVisit" asp-route-id="@appt.Id"
-                                           class="btn btn-sm btn-outline-primary me-1">
-                                            <i class="bi bi-play-circle"></i> Start Visit
-                                        </a>
+                                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="newStatusId" value="4" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="bi bi-play-circle"></i> Start Visit
+                                            </button>
+                                        </form>
+                                        <form asp-action="UpdateStatus" method="post" class="d-inline"
+                                              onsubmit="return confirm('Cancel this appointment?');">
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="newStatusId" value="6" />
+                                            <input type="hidden" name="cancellationReason" value="Cancelled by doctor" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-x-circle"></i> Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (appt.StatusName == "InProgress")
+                                    {
+                                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="appointmentId" value="@appt.Id" />
+                                            <input type="hidden" name="newStatusId" value="5" />
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check-circle"></i> Complete
+                                            </button>
+                                        </form>
                                     }
                                     @if (appt.StatusName == "Completed" && appt.HasVisitRecord)
                                     {
