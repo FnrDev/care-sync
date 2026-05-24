@@ -2,15 +2,19 @@
 using CareMVC.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using CareMVC.Hubs;
 
 namespace CareMVC.Controllers
 {
     public class DoctorController : BaseController
     {
         private readonly ApplicationDbContext _db;
-        public DoctorController(ApplicationDbContext db)
+        private readonly IHubContext<AppointmentHub> _hub;
+        public DoctorController(ApplicationDbContext db, IHubContext<AppointmentHub> hub)
         {
             _db = db;
+            _hub = hub;
         }
 
         private bool IsDoctorAuthorized() =>
@@ -179,6 +183,13 @@ namespace CareMVC.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Broadcast to SignalR clients
+            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+            {
+                appointmentId = appointment.Id,
+                newStatus = GetStatusName(newStatusId)
+            });
+
             TempData["Success"] = $"Appointment status updated to '{GetStatusName(newStatusId)}'.";
             return RedirectToAction("Dashboard");
         }
@@ -308,6 +319,12 @@ namespace CareMVC.Controllers
 
             await _db.SaveChangesAsync();
 
+            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+            {
+                appointmentId = appointment.Id,
+                newStatus = "Completed"
+            });
+
             TempData["Success"] = "Visit completed and record saved.";
             return RedirectToAction("Dashboard");
         }
@@ -363,6 +380,44 @@ namespace CareMVC.Controllers
             6 => $"Your appointment with Dr. {doctorName} has been cancelled.",
             _ => "Your appointment status has been updated."
         };
+
+        // GET /Doctor/TrackingBoard
+        public async Task<IActionResult> TrackingBoard()
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            var today = DateTime.Today;
+
+            var appointments = await _db.Appointments
+                .Include(a => a.PatientProfile)
+                .Include(a => a.DoctorProfile)
+                .Include(a => a.Specialization)
+                .Include(a => a.Status)
+                .Where(a => a.AppointmentDate.Date == today)
+                .OrderBy(a => a.StartTime)
+                .ToListAsync();
+
+            var userIds = appointments
+                .Select(a => a.PatientProfile.UserId)
+                .Distinct().ToList();
+
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+            ViewBag.Appointments = appointments.Select(a => new
+            {
+                a.Id,
+                PatientName = users.GetValueOrDefault(a.PatientProfile.UserId, "Unknown"),
+                a.PatientProfile.CPR,
+                DoctorName = a.DoctorProfile.UserId,
+                Specialization = a.Specialization.Name,
+                StartTime = a.StartTime.ToString("hh:mm tt"),
+                StatusName = a.Status.Name
+            }).ToList();
+
+            return View();
+        }
 
     }
 }
