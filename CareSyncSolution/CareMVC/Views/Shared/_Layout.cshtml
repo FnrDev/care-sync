@@ -43,12 +43,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Booking" asp-action="Index">
-                                    <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+                                    <i class="bi bi-calendar-plus me-1"></i>Book
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Patient" asp-action="MedicalRecords">
-                                    <i class="bi bi-journal-medical me-1"></i>Medical Records
+                                    <i class="bi bi-journal-medical me-1"></i>Records
                                 </a>
                             </li>
                         }
@@ -76,6 +76,20 @@
                         }
                     </ul>
                     <ul class="navbar-nav align-items-center gap-2">
+                        @{
+                            var unreadCount = 0;
+                            if (ViewBag.UserId != null)
+                            {
+                                var dbContext = Context.RequestServices
+                                .GetService<CareSyncAPI.Data.ApplicationDbContext>();
+                                if (dbContext != null)
+                                {
+                                    string uid = ViewBag.UserId;
+                                    unreadCount = dbContext.Notifications
+                                    .Count(n => n.UserId == uid && !n.IsRead);
+                                }
+                            }
+                        }
                         @if (ViewBag.IsAuthenticated == true)
                         {
                             <li class="nav-item">
@@ -83,6 +97,17 @@
                                     <i class="bi bi-person-circle me-1"></i>@ViewBag.UserFullName
                                     <span class="badge bg-light ms-1">@ViewBag.UserRole</span>
                                 </span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link position-relative px-2" asp-controller="Notification" asp-action="Index">
+                                    <i class="bi bi-bell"></i>
+                                    @if (unreadCount > 0)
+                                    {
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem; top: 0 !important; left: 60% !important; transform: none !important;">
+                                            @unreadCount
+                                        </span>
+                                    }
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link nav-login" asp-controller="Account" asp-action="Logout">

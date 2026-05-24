@@ -363,5 +363,6 @@ namespace CareMVC.Controllers
             6 => $"Your appointment with Dr. {doctorName} has been cancelled.",
             _ => "Your appointment status has been updated."
         };
+
     }
 }
