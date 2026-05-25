@@ -1,7 +1,9 @@
 using CareSyncAPI.Data;
+using CareSyncAPI.Hubs;
 using CareSyncAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -13,11 +15,24 @@ namespace CareSyncAPI.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
+        private readonly IHubContext<AppointmentHub> _hub;
 
-        public AppointmentsController(ApplicationDbContext db)
+        public AppointmentsController(ApplicationDbContext db, IHubContext<AppointmentHub> hub)
         {
             _db = db;
+            _hub = hub;
         }
+
+        private static readonly Dictionary<int, string> StatusNameById = new()
+        {
+            { 1, "Requested" },
+            { 2, "Confirmed" },
+            { 3, "CheckedIn" },
+            { 4, "InProgress" },
+            { 5, "Completed" },
+            { 6, "Cancelled" },
+            { 7, "Missed" }
+        };
 
         // PUBLIC - no auth required
         // GET /api/appointments/lookup?cpr=123&refNumber=PAT-001
@@ -427,6 +442,15 @@ namespace CareSyncAPI.Controllers
             });
 
             await _db.SaveChangesAsync();
+
+            if (appointment.AppointmentDate.Date == DateTime.Today)
+            {
+                await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+                {
+                    appointmentId = appointment.Id,
+                    newStatus = StatusNameById.GetValueOrDefault(request.NewStatusId, "Unknown")
+                });
+            }
 
             return Ok(new { message = "Status updated successfully" });
         }

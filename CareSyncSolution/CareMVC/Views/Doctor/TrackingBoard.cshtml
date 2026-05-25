@@ -1,6 +1,9 @@
-﻿@{
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
     ViewData["Title"] = "Live Tracking Board";
     var appointments = ViewBag.Appointments as IEnumerable<dynamic>;
+    var apiBaseUrl = (Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+    var hubUrl = $"{apiBaseUrl}/hubs/appointment";
 }
 
 <div class="d-flex align-items-center mb-4">
@@ -59,7 +62,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/hubs/appointment")
+            .withUrl("@hubUrl")
             .withAutomaticReconnect()
             .build();
 

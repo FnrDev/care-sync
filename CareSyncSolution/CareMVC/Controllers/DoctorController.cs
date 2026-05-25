@@ -1,20 +1,19 @@
 ﻿using CareSyncAPI.Data;
 using CareMVC.Models.ViewModels;
+using CareMVC.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SignalR;
-using CareMVC.Hubs;
 
 namespace CareMVC.Controllers
 {
     public class DoctorController : BaseController
     {
         private readonly ApplicationDbContext _db;
-        private readonly IHubContext<AppointmentHub> _hub;
-        public DoctorController(ApplicationDbContext db, IHubContext<AppointmentHub> hub)
+        private readonly IApiService _api;
+        public DoctorController(ApplicationDbContext db, IApiService api)
         {
             _db = db;
-            _hub = hub;
+            _api = api;
         }
 
         private bool IsDoctorAuthorized() =>
@@ -183,12 +182,7 @@ namespace CareMVC.Controllers
 
             await _db.SaveChangesAsync();
 
-            // Broadcast to SignalR clients
-            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
-            {
-                appointmentId = appointment.Id,
-                newStatus = GetStatusName(newStatusId)
-            });
+            await BroadcastStatusAsync(appointment.Id, GetStatusName(newStatusId));
 
             TempData["Success"] = $"Appointment status updated to '{GetStatusName(newStatusId)}'.";
             return RedirectToAction("Dashboard");
@@ -319,11 +313,7 @@ namespace CareMVC.Controllers
 
             await _db.SaveChangesAsync();
 
-            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
-            {
-                appointmentId = appointment.Id,
-                newStatus = "Completed"
-            });
+            await BroadcastStatusAsync(appointment.Id, "Completed");
 
             TempData["Success"] = "Visit completed and record saved.";
             return RedirectToAction("Dashboard");
@@ -357,6 +347,21 @@ namespace CareMVC.Controllers
         }
 
         // ── Helpers ──
+        private async Task BroadcastStatusAsync(int appointmentId, string newStatus)
+        {
+            try
+            {
+                await _api.PostRawAsync(
+                    "/api/realtime/appointment-status",
+                    new { appointmentId, newStatus },
+                    JwtToken);
+            }
+            catch
+            {
+                // Real-time broadcast failures shouldn't break the request.
+            }
+        }
+
         private static string GetStatusName(int statusId) => statusId switch
         {
             4 => "InProgress",

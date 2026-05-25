@@ -46,6 +46,25 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// SignalR
+builder.Services.AddSignalR();
+
+// CORS for SignalR clients hosted on the MVC origin
+const string SignalRCorsPolicy = "SignalRCors";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(SignalRCorsPolicy, policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://localhost:7230",
+                "http://localhost:5216")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -95,8 +114,11 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors(SignalRCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<CareSyncAPI.Hubs.AppointmentHub>("/hubs/appointment");
 
 app.Run();
