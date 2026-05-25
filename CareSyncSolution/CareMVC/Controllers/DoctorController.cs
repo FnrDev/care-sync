@@ -2,15 +2,19 @@
 using CareMVC.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using CareMVC.Hubs;
 
 namespace CareMVC.Controllers
 {
     public class DoctorController : BaseController
     {
         private readonly ApplicationDbContext _db;
-        public DoctorController(ApplicationDbContext db)
+        private readonly IHubContext<AppointmentHub> _hub;
+        public DoctorController(ApplicationDbContext db, IHubContext<AppointmentHub> hub)
         {
             _db = db;
+            _hub = hub;
         }
 
         private bool IsDoctorAuthorized() =>
@@ -119,7 +123,7 @@ namespace CareMVC.Controllers
                 return RedirectToAction("Dashboard");
             }
 
-            // Validate this doctor owns this appointment
+            // Doctor owns this appointment
             var doctorProfile = await _db.DoctorProfiles
                 .FirstOrDefaultAsync(d => d.UserId == UserId);
 
@@ -129,13 +133,13 @@ namespace CareMVC.Controllers
                 return RedirectToAction("Dashboard");
             }
 
-            // Valid transitions a Doctor can make
+             // transitions a Doctor can make
             var allowedTransitions = new Dictionary<int, List<int>>
-    {
-        { 2, new List<int> { 4, 6 } },   // Confirmed → InProgress or Cancelled
-        { 3, new List<int> { 4, 6 } },   // CheckedIn → InProgress or Cancelled
-        { 4, new List<int> { 5 } },       // InProgress → Completed
-    };
+            {
+                { 2, new List<int> { 4, 6 } },   // Confirmed → InProgress or Cancelled
+                { 3, new List<int> { 4, 6 } },   // CheckedIn → InProgress or Cancelled
+                { 4, new List<int> { 5 } },       // InProgress → Completed
+            };
 
             if (!allowedTransitions.TryGetValue(appointment.StatusId, out var allowed)
                 || !allowed.Contains(newStatusId))
@@ -179,8 +183,177 @@ namespace CareMVC.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Broadcast to SignalR clients
+            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+            {
+                appointmentId = appointment.Id,
+                newStatus = GetStatusName(newStatusId)
+            });
+
             TempData["Success"] = $"Appointment status updated to '{GetStatusName(newStatusId)}'.";
             return RedirectToAction("Dashboard");
+        }
+        // GET /Doctor/CompleteVisit/5
+        public async Task<IActionResult> CompleteVisit(int id)
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            var appointment = await _db.Appointments
+                .Include(a => a.PatientProfile)
+                .Include(a => a.Specialization)
+                .Include(a => a.Status)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (appointment == null) return NotFound();
+
+            var patientUser = await _db.Users
+                .FirstOrDefaultAsync(u => u.Id == appointment.PatientProfile.UserId);
+
+            var vm = new VisitRecordViewModel
+            {
+                AppointmentId = appointment.Id,
+                PatientName = patientUser?.FullName ?? "Unknown",
+                PatientCPR = appointment.PatientProfile.CPR,
+                Specialization = appointment.Specialization.Name
+            };
+
+            return View(vm);
+        }
+
+        // POST /Doctor/CompleteVisit
+        [HttpPost]
+        public async Task<IActionResult> CompleteVisit(VisitRecordViewModel vm)
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var appointment = await _db.Appointments
+                .Include(a => a.PatientProfile)
+                .FirstOrDefaultAsync(a => a.Id == vm.AppointmentId);
+
+            if (appointment == null) return NotFound();
+
+            var doctorProfile = await _db.DoctorProfiles
+                .FirstOrDefaultAsync(d => d.UserId == UserId);
+
+            if (doctorProfile == null) return NotFound();
+
+            // Create Visit Record
+            var visitRecord = new CareSyncAPI.Models.VisitRecord
+            {
+                AppointmentId = appointment.Id,
+                DoctorProfileId = doctorProfile.Id,
+                PatientProfileId = appointment.PatientProfileId,
+                Diagnosis = vm.Diagnosis,
+                DoctorNotes = vm.DoctorNotes,
+                Treatment = vm.Treatment,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.VisitRecords.Add(visitRecord);
+            await _db.SaveChangesAsync();
+
+            // Add Prescription if any 
+            var validItems = vm.Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.MedicationName))
+                .ToList();
+
+            if (validItems.Any())
+            {
+                var prescription = new CareSyncAPI.Models.Prescription
+                {
+                    VisitRecordId = visitRecord.Id,
+                    DoctorProfileId = doctorProfile.Id,
+                    PatientProfileId = appointment.PatientProfileId,
+                    DateIssued = DateTime.UtcNow,
+                    Notes = vm.PrescriptionNotes
+                };
+
+                _db.Prescriptions.Add(prescription);
+                await _db.SaveChangesAsync();
+
+                foreach (var item in validItems)
+                {
+                    _db.PrescriptionItems.Add(new CareSyncAPI.Models.PrescriptionItem
+                    {
+                        PrescriptionId = prescription.Id,
+                        MedicationName = item.MedicationName,
+                        Dosage = item.Dosage,
+                        Frequency = item.Frequency,
+                        DurationDays = item.DurationDays,
+                        Instructions = item.Instructions
+                    });
+                }
+            }
+
+            // Appointment Completed
+            var previousStatusId = appointment.StatusId;
+            appointment.StatusId = 5;
+            appointment.UpdatedAt = DateTime.UtcNow;
+
+            // Log history
+            _db.AppointmentStatusHistories.Add(new CareSyncAPI.Models.AppointmentStatusHistory
+            {
+                AppointmentId = appointment.Id,
+                PreviousStatusId = previousStatusId,
+                NewStatusId = 5,
+                ChangedAt = DateTime.UtcNow,
+                ChangedById = UserId!,
+                Notes = "Visit completed with record"
+            });
+
+            // Notify patient
+            _db.Notifications.Add(new CareSyncAPI.Models.Notification
+            {
+                UserId = appointment.PatientProfile.UserId,
+                Title = "Visit completed",
+                Message = "Your visit is complete. Your records and prescription are ready.",
+                Type = "VisitCompleted",
+                RelatedEntityId = appointment.Id,
+                RelatedEntityType = "Appointment",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+
+            await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+            {
+                appointmentId = appointment.Id,
+                newStatus = "Completed"
+            });
+
+            TempData["Success"] = "Visit completed and record saved.";
+            return RedirectToAction("Dashboard");
+        }
+
+        // GET /Doctor/VisitRecord/5
+        public async Task<IActionResult> VisitRecord(int id)
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            var appointment = await _db.Appointments
+                .Include(a => a.PatientProfile)
+                .Include(a => a.Specialization)
+                .Include(a => a.VisitRecord)
+                    .ThenInclude(v => v!.Prescription)
+                        .ThenInclude(p => p!.PrescriptionItems)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (appointment == null || appointment.VisitRecord == null)
+                return NotFound();
+
+            var patientUser = await _db.Users
+                .FirstOrDefaultAsync(u => u.Id == appointment.PatientProfile.UserId);
+
+            ViewBag.PatientName = patientUser?.FullName ?? "Unknown";
+            ViewBag.PatientCPR = appointment.PatientProfile.CPR;
+            ViewBag.Specialization = appointment.Specialization.Name;
+            ViewBag.AppointmentDate = appointment.AppointmentDate;
+
+            return View(appointment.VisitRecord);
         }
 
         // ── Helpers ──
@@ -207,5 +380,44 @@ namespace CareMVC.Controllers
             6 => $"Your appointment with Dr. {doctorName} has been cancelled.",
             _ => "Your appointment status has been updated."
         };
+
+        // GET /Doctor/TrackingBoard
+        public async Task<IActionResult> TrackingBoard()
+        {
+            if (!IsDoctorAuthorized()) return RedirectToLogin();
+
+            var today = DateTime.Today;
+
+            var appointments = await _db.Appointments
+                .Include(a => a.PatientProfile)
+                .Include(a => a.DoctorProfile)
+                .Include(a => a.Specialization)
+                .Include(a => a.Status)
+                .Where(a => a.AppointmentDate.Date == today)
+                .OrderBy(a => a.StartTime)
+                .ToListAsync();
+
+            var userIds = appointments
+                .Select(a => a.PatientProfile.UserId)
+                .Distinct().ToList();
+
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+            ViewBag.Appointments = appointments.Select(a => new
+            {
+                a.Id,
+                PatientName = users.GetValueOrDefault(a.PatientProfile.UserId, "Unknown"),
+                a.PatientProfile.CPR,
+                DoctorName = a.DoctorProfile.UserId,
+                Specialization = a.Specialization.Name,
+                StartTime = a.StartTime.ToString("hh:mm tt"),
+                StatusName = a.Status.Name
+            }).ToList();
+
+            return View();
+        }
+
     }
 }

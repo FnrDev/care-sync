@@ -17,6 +17,7 @@ namespace CareMVC.Controllers
             ViewBag.IsAuthenticated = IsAuthenticated;
             ViewBag.UserRole = UserRole;
             ViewBag.UserFullName = UserFullName;
+            ViewBag.UserId = UserId;
             base.OnActionExecuting(context);
         }
 

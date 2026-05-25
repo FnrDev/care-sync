@@ -1,0 +1,66 @@
+﻿@model List<CareSyncAPI.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Dashboard" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-bell me-2"></i>Notifications</h3>
+    @if (Model.Any(n => !n.IsRead))
+    {
+        <form asp-action="MarkAllAsRead" method="post" class="ms-auto">
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-check-all me-1"></i> Mark All as Read
+            </button>
+        </form>
+    }
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var n in Model)
+                {
+                    <li class="list-group-item @(!n.IsRead ? "bg-light" : "")">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="mb-1 fw-bold">
+                                    @if (!n.IsRead)
+                                    {
+                                        <span class="badge bg-primary me-1">New</span>
+                                    }
+                                    @n.Title
+                                </p>
+                                <p class="mb-1 text-muted small">@n.Message</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    @n.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")
+                                </small>
+                            </div>
+                            @if (!n.IsRead)
+                            {
+                                <form asp-action="MarkAsRead" method="post" class="ms-3">
+                                    <input type="hidden" name="id" value="@n.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-check"></i> Mark Read
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-bell-slash display-4"></i>
+                <p class="mt-2">No notifications yet.</p>
+            </div>
+        }
+    </div>
+</div>
