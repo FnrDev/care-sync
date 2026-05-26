@@ -49,7 +49,7 @@ The API targets SQL Server LocalDB (`(localdb)\mssqllocaldb`, database `CareSync
 
 | Role | Email | Password |
 |---|---|---|
-| Manager | Manager@caresync.local | Manager@123 |
+| Manager | manager@caresync.local | manager@123 |
 | Receptionist | reception@caresync.local | Reception@123 |
 | Doctor | dr.smith@caresync.local | Doctor@123 |
 | Doctor | dr.jones@caresync.local | Doctor@123 |
