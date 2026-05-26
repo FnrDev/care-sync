@@ -31,7 +31,7 @@ The API targets SQL Server LocalDB (`(localdb)\mssqllocaldb`, database `CareSync
 | `/api/appointments/lookup` | GET | None | Public patient lookup by CPR (+ optional ref number) |
 | `/api/appointments` | GET | JWT | Get all appointments |
 | `/api/appointments/my` | GET | JWT + Patient | Get current patient's appointments |
-| `/api/appointments/today` | GET | JWT + Receptionist/Admin | Today's appointments queue |
+| `/api/appointments/today` | GET | JWT + Receptionist/Manager | Today's appointments queue |
 | `/api/appointments/available-slots` | GET | JWT | Available time slots for a doctor on a date |
 | `/api/appointments` | POST | JWT + Patient/Receptionist | Create a new appointment |
 | `/api/appointments/{id}/status` | PUT | JWT | Update appointment status (confirm, check-in, cancel) |
@@ -42,14 +42,14 @@ The API targets SQL Server LocalDB (`(localdb)\mssqllocaldb`, database `CareSync
 | `/api/patients/me` | GET | JWT + Patient | Get current patient's profile |
 | `/api/patients/me/medical-records` | GET | JWT + Patient | Get patient's visit records and prescriptions |
 | `/api/patients/search` | GET | JWT + Receptionist | Search patient by CPR |
-| `/api/reports/appointment-stats` | GET | JWT + Admin | Appointment counts by status |
-| `/api/reports/doctor-utilization` | GET | JWT + Admin | Appointments per doctor |
+| `/api/reports/appointment-stats` | GET | JWT + Manager | Appointment counts by status |
+| `/api/reports/doctor-utilization` | GET | JWT + Manager | Appointments per doctor |
 
 ## Test Credentials
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | admin@caresync.local | Admin@123 |
+| Manager | Manager@caresync.local | Manager@123 |
 | Receptionist | reception@caresync.local | Reception@123 |
 | Doctor | dr.smith@caresync.local | Doctor@123 |
 | Doctor | dr.jones@caresync.local | Doctor@123 |
