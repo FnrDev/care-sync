@@ -389,7 +389,8 @@ namespace CareMVC.Controllers
         // GET /Doctor/TrackingBoard
         public async Task<IActionResult> TrackingBoard()
         {
-            if (!IsDoctorAuthorized()) return RedirectToLogin();
+            if (!IsAuthenticated || (UserRole != "Doctor" && UserRole != "Receptionist"))
+                return RedirectToLogin();
 
             var today = DateTime.Today;
 

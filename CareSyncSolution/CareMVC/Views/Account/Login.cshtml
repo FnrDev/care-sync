@@ -40,8 +40,8 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Show validation summary if it has content
+        // Show validation summary only when there are real errors
         var vs = document.querySelector('[data-valmsg-summary]');
-        if (vs && vs.querySelectorAll('li').length > 0) vs.style.display = 'block';
+        if (vs && vs.classList.contains('validation-summary-errors')) vs.style.display = 'block';
     </script>
 }

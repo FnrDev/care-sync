@@ -34,25 +34,6 @@
                             </a>
                         </li>
 
-                        @if (ViewBag.UserRole == "Patient")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Patient" asp-action="Dashboard">
-                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Booking" asp-action="Index">
-                                    <i class="bi bi-calendar-plus me-1"></i>Book
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Patient" asp-action="MedicalRecords">
-                                    <i class="bi bi-journal-medical me-1"></i>Records
-                                </a>
-                            </li>
-                        }
-
                         @if (ViewBag.UserRole == "Receptionist")
                         {
                             <li class="nav-item">
@@ -63,14 +44,6 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Receptionist" asp-action="BookForPatient">
                                     <i class="bi bi-calendar-plus me-1"></i>Book for Patient
-                                </a>
-                            </li>
-                        }
-                        @if (ViewBag.UserRole == "Doctor")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Doctor" asp-action="Dashboard">
-                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -120,11 +93,48 @@
                         }
                         @if (ViewBag.IsAuthenticated == true)
                         {
-                            <li class="nav-item">
-                                <span class="nav-link" style="color:rgba(255,255,255,.7)!important;font-size:.87rem;">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false"
+                                   style="color:rgba(255,255,255,.85)!important;font-size:.87rem;">
                                     <i class="bi bi-person-circle me-1"></i>@ViewBag.UserFullName
                                     <span class="badge bg-light ms-1">@ViewBag.UserRole</span>
-                                </span>
+                                </a>
+                                @if (ViewBag.UserRole == "Patient")
+                                {
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Patient" asp-action="Dashboard">
+                                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Booking" asp-action="Index">
+                                                <i class="bi bi-calendar-plus me-2"></i>Book
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Patient" asp-action="MedicalRecords">
+                                                <i class="bi bi-journal-medical me-2"></i>Records
+                                            </a>
+                                        </li>
+                                    </ul>
+                                }
+                                else if (ViewBag.UserRole == "Doctor")
+                                {
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Doctor" asp-action="Dashboard">
+                                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Doctor" asp-action="TrackingBoard">
+                                                <i class="bi bi-display me-2"></i>Live Board
+                                            </a>
+                                        </li>
+                                    </ul>
+                                }
                             </li>
                             @if (ViewBag.UserRole == "Patient" || ViewBag.UserRole == "Doctor")
                             {
