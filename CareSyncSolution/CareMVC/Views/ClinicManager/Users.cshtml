@@ -1,0 +1,179 @@
+@model List<CareSyncAPI.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "User Management";
+    var userRoles   = ViewBag.UserRoles   as Dictionary<string, string>;
+    var patientCprs = ViewBag.PatientCPRs as Dictionary<string, string>;
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Dashboard" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-people me-2"></i>User Management</h3>
+</div>
+
+<partial name="_SuccessErrorAlerts" />
+
+@* Search bar *@
+<div class="mb-3">
+    <div class="input-group" style="max-width:380px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+        </span>
+        <input id="userSearch" type="search" class="form-control border-start-0 ps-0"
+               placeholder="Search by name, email or CPR…" autocomplete="off" />
+    </div>
+</div>
+
+@* Role filter buttons *@
+<div class="mb-3">
+    <button class="btn btn-sm btn-primary me-1 filter-btn active" data-role="All">All</button>
+    <button class="btn btn-sm btn-outline-primary me-1 filter-btn" data-role="Doctor">
+        <i class="bi bi-person-badge me-1"></i>Doctors
+    </button>
+    <button class="btn btn-sm btn-outline-success me-1 filter-btn" data-role="Patient">
+        <i class="bi bi-person me-1"></i>Patients
+    </button>
+    <button class="btn btn-sm btn-outline-info me-1 filter-btn" data-role="Receptionist">
+        <i class="bi bi-headset me-1"></i>Receptionists
+    </button>
+    <button class="btn btn-sm btn-outline-warning filter-btn" data-role="ClinicManager">
+        <i class="bi bi-building me-1"></i>Clinic Manager
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>CPR</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        var role = userRoles?.GetValueOrDefault(u.Id, "No Role") ?? "No Role";
+                        var cpr  = patientCprs?.GetValueOrDefault(u.Id, "") ?? "";
+
+                        <tr data-role="@role"
+                            data-name="@u.FullName"
+                            data-email="@u.Email"
+                            data-cpr="@cpr">
+                            <td><strong>@u.FullName</strong></td>
+                            <td>@u.Email</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(cpr))
+                                {
+                                    <span class="font-monospace">@cpr</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-@GetRoleColor(role)">@role</span>
+                            </td>
+                            <td>
+                                @if (u.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>@u.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <form asp-action="ToggleUserStatus" method="post" class="d-inline"
+                                      onsubmit="return confirm('Toggle user status?');">
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit"
+                                            class="btn btn-sm @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                        @(u.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetRoleColor(string role) => role switch
+    {
+        "Doctor"        => "primary",
+        "Patient"       => "success",
+        "Receptionist"  => "info",
+        "ClinicManager" => "warning text-dark",
+        _               => "secondary"
+    };
+}
+
+@section Scripts {
+    <script>
+        // ── state ──────────────────────────────────────────────────────────
+        let currentRole  = 'All';
+        let searchQuery  = '';
+
+        // ── core filter function ────────────────────────────────────────────
+        function applyFilters() {
+            const q = searchQuery.trim().toLowerCase();
+
+            document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+                const roleMatch = currentRole === 'All' || row.dataset.role === currentRole;
+
+                const searchMatch = !q ||
+                    (row.dataset.name  || '').toLowerCase().includes(q) ||
+                    (row.dataset.email || '').toLowerCase().includes(q) ||
+                    (row.dataset.cpr   || '').toLowerCase().includes(q);
+
+                row.style.display = (roleMatch && searchMatch) ? '' : 'none';
+            });
+        }
+
+        // ── role filter buttons ─────────────────────────────────────────────
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                currentRole = this.dataset.role;
+
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    const color = b.dataset.role === 'All'           ? 'primary' :
+                                  b.dataset.role === 'Doctor'        ? 'primary' :
+                                  b.dataset.role === 'Patient'       ? 'success' :
+                                  b.dataset.role === 'Receptionist'  ? 'info'    : 'warning';
+                    b.classList.remove('active', 'btn-primary', 'btn-success',
+                                       'btn-info', 'btn-warning');
+                    b.classList.add('btn-outline-' + color);
+                });
+
+                const activeColor = currentRole === 'All'          ? 'primary' :
+                                    currentRole === 'Doctor'       ? 'primary' :
+                                    currentRole === 'Patient'      ? 'success' :
+                                    currentRole === 'Receptionist' ? 'info'    : 'warning';
+                this.classList.remove('btn-outline-' + activeColor);
+                this.classList.add('active', 'btn-' + activeColor);
+
+                applyFilters();
+            });
+        });
+
+        // ── search input ────────────────────────────────────────────────────
+        document.getElementById('userSearch').addEventListener('input', function () {
+            searchQuery = this.value;
+            applyFilters();
+        });
+    </script>
+}

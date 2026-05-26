@@ -783,7 +783,7 @@ hr { border-color: var(--border); opacity: 1; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(26,60,94,.4); }
 
 /* ── Page animation ──────────────────────────────────── */
-main { animation: fadeUp .25s ease both; }
+main { animation: fadeUp .25s ease backwards; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
 /* ── Mobile ──────────────────────────────────────────── */
