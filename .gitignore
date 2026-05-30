@@ -60,3 +60,7 @@ $RECYCLE.BIN/
 
 ## Publish output
 publish/
+
+## Visual Studio publish profiles & service dependencies (machine/account specific)
+**/Properties/PublishProfiles/
+**/Properties/ServiceDependencies/

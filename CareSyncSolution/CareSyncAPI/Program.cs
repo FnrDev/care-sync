@@ -51,14 +51,34 @@ builder.Services.AddSignalR();
 
 // CORS for SignalR clients hosted on the MVC origin
 const string SignalRCorsPolicy = "SignalRCors";
+
+// Allowed MVC client origins. The deployed origin is supplied via the
+// "MvcClientOrigin" app setting / environment variable (e.g. set in the
+// Azure portal); local dev origins are always allowed as a fallback.
+var allowedOrigins = new List<string>
+{
+    "https://localhost:7230",
+    "http://localhost:5216"
+};
+var mvcClientOrigin = builder.Configuration["MvcClientOrigin"];
+if (!string.IsNullOrWhiteSpace(mvcClientOrigin))
+{
+    foreach (var origin in mvcClientOrigin.Split(
+        ',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        // CORS origins must include a scheme; default to https when omitted
+        // (Azure app setting values are often just the host name).
+        allowedOrigins.Add(
+            origin.Contains("://", StringComparison.Ordinal) ? origin : $"https://{origin}");
+    }
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(SignalRCorsPolicy, policy =>
     {
         policy
-            .WithOrigins(
-                "https://localhost:7230",
-                "http://localhost:5216")
+            .WithOrigins(allowedOrigins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

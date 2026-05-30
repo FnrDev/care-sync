@@ -16,7 +16,7 @@ builder.Services.AddSession(options =>
 // HttpClient for API calls
 builder.Services.AddHttpClient("CareSyncAPI", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
 }).ConfigurePrimaryHttpMessageHandler(() =>
 {
     return new HttpClientHandler

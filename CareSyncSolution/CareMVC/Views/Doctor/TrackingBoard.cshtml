@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Live Tracking Board";
     var appointments = ViewBag.Appointments as IEnumerable<dynamic>;
-    var apiBaseUrl = (Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+    var apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "").TrimEnd('/');
     var hubUrl = $"{apiBaseUrl}/hubs/appointment";
 }
 
