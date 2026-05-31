@@ -1,0 +1,601 @@
+﻿@using ReportingApplication.Models
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Reports";
+
+    var appointmentStats = ViewBag.AppointmentStats as AppointmentStatsDto;
+    var doctorUtilization = ViewBag.DoctorUtilization as List<DoctorUtilizationDto>;
+
+    int GetStatusCount(string status)
+    {
+        return appointmentStats?.ByStatus
+            .FirstOrDefault(x => x.Status == status)?.Count ?? 0;
+    }
+
+    var completed = GetStatusCount("Completed");
+    var cancelled = GetStatusCount("Cancelled");
+    var missed = GetStatusCount("Missed");
+
+    var total = appointmentStats?.Total ?? 0;
+
+    var completionRate = total == 0 ? 0 : Math.Round((double)completed / total * 100, 1);
+    var cancellationRate = total == 0 ? 0 : Math.Round((double)cancelled / total * 100, 1);
+    var missedRate = total == 0 ? 0 : Math.Round((double)missed / total * 100, 1);
+
+    var busiestDoctor = doctorUtilization?
+        .OrderByDescending(d => d.TotalAppointments)
+        .FirstOrDefault();
+
+    var leastBusyDoctor = doctorUtilization?
+        .OrderBy(d => d.TotalAppointments)
+        .FirstOrDefault();
+
+    var statusLabels = appointmentStats?.ByStatus.Select(s => s.Status).ToList() ?? new List<string>();
+    var statusCounts = appointmentStats?.ByStatus.Select(s => s.Count).ToList() ?? new List<int>();
+
+    var doctorLabels = doctorUtilization?.Select(d => d.Doctor).ToList() ?? new List<string>();
+    var doctorCounts = doctorUtilization?.Select(d => d.TotalAppointments).ToList() ?? new List<int>();
+}
+
+
+<style>
+    body {
+        background-color: #f5f7fb;
+    }
+
+    .dashboard-wrapper {
+        display: flex;
+        min-height: calc(100vh - 70px);
+    }
+
+    .sidebar {
+        width: 240px;
+        background: #102a43;
+        color: white;
+        padding: 24px 18px;
+        border-radius: 16px;
+        height: fit-content;
+        position: sticky;
+        top: 90px;
+    }
+
+    .sidebar h5 {
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .sidebar a {
+        display: block;
+        color: #d9e2ec;
+        text-decoration: none;
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+
+    .sidebar a:hover,
+    .sidebar .active {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .dashboard-content {
+        flex: 1;
+        padding-left: 24px;
+    }
+
+    .page-title {
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        transition: 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .stat-card .card-body {
+        padding: 22px;
+    }
+
+    .stat-title {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 14px 20px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .chart-box {
+        height: 320px;
+    }
+
+    .insight-value {
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    @@media (max-width: 992px) {
+        .dashboard-wrapper {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            position: static;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-content {
+            padding-left: 0;
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4 px-4">
+
+    <div class="dashboard-wrapper">
+
+        <aside class="sidebar">
+            <h5>CareSync Reports</h5>
+
+            <a href="/Reports" class="active">Dashboard</a>
+            <a href="#appointment-overview">Appointment Overview</a>
+            <a href="#charts">Charts</a>
+            <a href="#doctor-utilization">Doctor Utilization</a>
+            <a href="#manager-insights">Manager Insights</a>
+            <a href="/Auth/Logout">Logout</a>
+        </aside>
+
+        <main class="dashboard-content">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title">Clinic Manager Dashboard</h2>
+                    <p class="page-subtitle mb-0">
+                        Operational reporting dashboard for appointments, doctor workload, and clinic performance.
+                    </p>
+                </div>
+
+                <button onclick="downloadReport()" class="btn btn-primary">
+                    Download Report
+                </button>
+            </div>
+
+            @if (appointmentStats == null)
+            {
+                <div class="alert alert-danger">
+                    Unable to load appointment statistics.
+                </div>
+            }
+            else
+            {
+                <section id="appointment-overview" class="mb-4">
+
+                    <div class="row g-3">
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-primary border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Total Appointments</div>
+                                    <p class="stat-number">@appointmentStats.Total</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Today's Appointments</div>
+                                    <p class="stat-number">@appointmentStats.TodayCount</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-info border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Confirmed</div>
+                                    <p class="stat-number">@GetStatusCount("Confirmed")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-warning border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Checked In</div>
+                                    <p class="stat-number">@GetStatusCount("CheckedIn")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Completed</div>
+                                    <p class="stat-number">@GetStatusCount("Completed")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-danger border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Cancelled</div>
+                                    <p class="stat-number">@GetStatusCount("Cancelled")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-secondary border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Requested</div>
+                                    <p class="stat-number">@GetStatusCount("Requested")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card border-start border-dark border-4">
+                                <div class="card-body">
+                                    <div class="stat-title">Missed</div>
+                                    <p class="stat-number">@GetStatusCount("Missed")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section id="charts" class="mb-4">
+
+                    <div class="row g-4">
+
+                        <div class="col-lg-6">
+                            <div class="card section-card">
+                                <div class="section-header bg-primary">
+                                    Appointment Status Distribution
+                                </div>
+
+                                <div class="card-body chart-box">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="card section-card">
+                                <div class="section-header bg-success">
+                                    Doctor Utilization Chart
+                                </div>
+
+                                <div class="card-body chart-box">
+                                    <canvas id="doctorChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section id="manager-insights" class="mb-4">
+
+                    <div class="row g-3">
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="stat-title">Completion Rate</div>
+                                    <div class="insight-value text-success">@completionRate%</div>
+                                    <small class="text-muted">Completed out of total appointments</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="stat-title">Cancellation Rate</div>
+                                    <div class="insight-value text-danger">@cancellationRate%</div>
+                                    <small class="text-muted">Cancelled out of total appointments</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="stat-title">Missed Rate</div>
+                                    <div class="insight-value text-dark">@missedRate%</div>
+                                    <small class="text-muted">Missed out of total appointments</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="stat-title">Busiest Doctor</div>
+                                    <div class="insight-value" style="font-size: 18px;">
+                                        @(busiestDoctor?.Doctor ?? "N/A")
+                                    </div>
+                                    <small class="text-muted">
+                                        @(busiestDoctor?.TotalAppointments ?? 0) appointments
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </section>
+                <section class="mb-4">
+
+                    <div class="card section-card">
+
+                        <div class="section-header bg-danger">
+                            Cancellation & Missed Appointment Analysis
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="text-muted">Cancelled Appointments</h6>
+                                        <h3>@cancelled</h3>
+                                        <p class="mb-0 text-danger">@cancellationRate% of total appointments</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="text-muted">Missed Appointments</h6>
+                                        <h3>@missed</h3>
+                                        <p class="mb-0 text-dark">@missedRate% of total appointments</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="text-muted">Clinic Reliability</h6>
+
+                                        @if (cancellationRate + missedRate <= 20)
+                                        {
+                                            <h3 class="text-success">Stable</h3>
+                                            <p class="mb-0 text-muted">Low disruption rate.</p>
+                                        }
+                                        else
+                                        {
+                                            <h3 class="text-warning">Needs Review</h3>
+                                            <p class="mb-0 text-muted">Cancellation or missed rate is high.</p>
+                                        }
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+            }
+
+            <section id="doctor-utilization" class="mb-4">
+
+                <div class="card section-card">
+
+                    <div class="section-header bg-success">
+                        Doctor Utilization Report
+                    </div>
+
+                    <div class="card-body">
+
+                        @if (doctorUtilization == null || !doctorUtilization.Any())
+                        {
+                            <div class="alert alert-warning">
+                                No doctor utilization data available.
+                            </div>
+                        }
+                        else
+                        {
+                            <table class="table table-hover align-middle">
+
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Doctor</th>
+                                        <th>Total Appointments</th>
+                                        <th>Workload Level</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var doctor in doctorUtilization)
+                                    {
+                                        var workload = doctor.TotalAppointments >= 3 ? "High" :
+                                        doctor.TotalAppointments == 2 ? "Medium" : "Low";
+
+                                        var badgeClass = workload == "High" ? "bg-danger" :
+                                        workload == "Medium" ? "bg-warning text-dark" : "bg-success";
+
+                                        <tr>
+                                            <td>@doctor.Doctor</td>
+                                            <td>@doctor.TotalAppointments</td>
+                                            <td>
+                                                <span class="badge @badgeClass">
+                                                    @workload
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        }
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="mb-5">
+
+                <div class="card section-card">
+
+                    <div class="section-header bg-dark">
+                        Recent Clinic Activity
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="activity-item">
+                            <strong>Appointment analytics updated</strong>
+                            <div class="text-muted small">
+                                The dashboard retrieved appointment statistics from the Web API using JWT authentication.
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <strong>Doctor workload calculated</strong>
+                            <div class="text-muted small">
+                                Doctor utilization is based on appointment distribution across clinic doctors.
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <strong>Manager insights generated</strong>
+                            <div class="text-muted small">
+                                Completion, cancellation, and missed rates are calculated from live report data.
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const statusLabels = @Html.Raw(JsonSerializer.Serialize(statusLabels));
+    const statusCounts = @Html.Raw(JsonSerializer.Serialize(statusCounts));
+
+    const doctorLabels = @Html.Raw(JsonSerializer.Serialize(doctorLabels));
+    const doctorCounts = @Html.Raw(JsonSerializer.Serialize(doctorCounts));
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('doctorChart'), {
+        type: 'bar',
+        data: {
+            labels: doctorLabels,
+            datasets: [{
+                label: 'Appointments',
+                data: doctorCounts
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+<script>
+        function downloadReport() {
+            const now = new Date();
+
+            const dateText = now.toLocaleDateString();
+            const fileDate = now.toISOString().split('T')[0];
+
+            const content = `
+    CareSync Clinic Manager Report
+    Downloaded Date: ${dateText}
+
+    Total Appointments: @appointmentStats?.Total
+    Today's Appointments: @appointmentStats?.TodayCount
+    Completed: @completed
+    Cancelled: @cancelled
+    Missed: @missed
+    Completion Rate: @completionRate%
+    Cancellation Rate: @cancellationRate%
+    Missed Rate: @missedRate%
+
+    Busiest Doctor: @(busiestDoctor?.Doctor ?? "N/A")
+    `;
+
+            const blob = new Blob([content], { type: "text/plain" });
+            const link = document.createElement("a");
+
+            link.href = URL.createObjectURL(blob);
+            link.download = `CareSync_Report_${fileDate}.txt`;
+
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+</script>
