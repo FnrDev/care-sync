@@ -1,7 +1,9 @@
 using CareSyncAPI.Data;
+using CareSyncAPI.Hubs;
 using CareSyncAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -9,14 +11,28 @@ namespace CareSyncAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AppointmentsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
+        private readonly IHubContext<AppointmentHub> _hub;
 
-        public AppointmentsController(ApplicationDbContext db)
+        public AppointmentsController(ApplicationDbContext db, IHubContext<AppointmentHub> hub)
         {
             _db = db;
+            _hub = hub;
         }
+
+        private static readonly Dictionary<int, string> StatusNameById = new()
+        {
+            { 1, "Requested" },
+            { 2, "Confirmed" },
+            { 3, "CheckedIn" },
+            { 4, "InProgress" },
+            { 5, "Completed" },
+            { 6, "Cancelled" },
+            { 7, "Missed" }
+        };
 
         // PUBLIC - no auth required
         // GET /api/appointments/lookup?cpr=123&refNumber=PAT-001
@@ -95,7 +111,6 @@ namespace CareSyncAPI.Controllers
         // PROTECTED - requires JWT
         // GET /api/appointments
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var appointments = await _db.Appointments
@@ -212,7 +227,6 @@ namespace CareSyncAPI.Controllers
 
         // GET /api/appointments/available-slots?doctorId=1&date=2026-05-15
         [HttpGet("available-slots")]
-        [Authorize]
         public async Task<IActionResult> GetAvailableSlots([FromQuery] int doctorId, [FromQuery] DateTime date)
         {
             var doctor = await _db.DoctorProfiles.FindAsync(doctorId);
@@ -384,7 +398,6 @@ namespace CareSyncAPI.Controllers
 
         // PUT /api/appointments/{id}/status
         [HttpPut("{id}/status")]
-        [Authorize]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request)
         {
             var appointment = await _db.Appointments
@@ -399,7 +412,8 @@ namespace CareSyncAPI.Controllers
             {
                 { 1, new[] { 2, 6 } },  // Requested -> Confirmed, Cancelled
                 { 2, new[] { 3, 6 } },  // Confirmed -> CheckedIn, Cancelled
-                { 3, new[] { 5 } }       // CheckedIn -> Completed
+                { 3, new[] { 4, 6 } },  // CheckedIn -> InProgress, Cancelled
+                { 4, new[] { 5, 7 } }   // InProgress -> Completed, Missed
             };
 
             if (!validTransitions.ContainsKey(appointment.StatusId)
@@ -428,6 +442,15 @@ namespace CareSyncAPI.Controllers
             });
 
             await _db.SaveChangesAsync();
+
+            if (appointment.AppointmentDate.Date == DateTime.Today)
+            {
+                await _hub.Clients.Group("ClinicBoard").SendAsync("AppointmentStatusChanged", new
+                {
+                    appointmentId = appointment.Id,
+                    newStatus = StatusNameById.GetValueOrDefault(request.NewStatusId, "Unknown")
+                });
+            }
 
             return Ok(new { message = "Status updated successfully" });
         }

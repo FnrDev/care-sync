@@ -1,0 +1,155 @@
+﻿@model VisitRecordViewModel
+@{
+    ViewData["Title"] = "Complete Visit";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Dashboard" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-file-medical me-2"></i>Complete Visit</h3>
+</div>
+
+@* Patient Info *@
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <small class="text-muted">Patient</small>
+                <p class="fw-bold mb-0">@Model.PatientName</p>
+            </div>
+            <div class="col-md-4">
+                <small class="text-muted">CPR</small>
+                <p class="fw-bold mb-0"><code>@Model.PatientCPR</code></p>
+            </div>
+            <div class="col-md-4">
+                <small class="text-muted">Specialization</small>
+                <p class="fw-bold mb-0">@Model.Specialization</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="CompleteVisit" method="post">
+    <input type="hidden" asp-for="AppointmentId" />
+    <input type="hidden" asp-for="PatientName" />
+    <input type="hidden" asp-for="PatientCPR" />
+    <input type="hidden" asp-for="Specialization" />
+
+    @* Visit Record *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Visit Record</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="Diagnosis" class="form-label fw-bold">Diagnosis</label>
+                <input asp-for="Diagnosis" class="form-control"
+                       placeholder="e.g. Hypertension stage 1" />
+                <span asp-validation-for="Diagnosis" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DoctorNotes" class="form-label fw-bold">Doctor Notes</label>
+                <textarea asp-for="DoctorNotes" class="form-control" rows="3"
+                          placeholder="Observations, symptoms, findings..."></textarea>
+                <span asp-validation-for="DoctorNotes" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Treatment" class="form-label fw-bold">Treatment Plan</label>
+                <textarea asp-for="Treatment" class="form-control" rows="3"
+                          placeholder="Prescribed treatment, lifestyle advice..."></textarea>
+                <span asp-validation-for="Treatment" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+
+    @* Prescription *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-capsule me-2"></i>Prescription</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addItem">
+                <i class="bi bi-plus-circle"></i> Add Medication
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="PrescriptionNotes" class="form-label fw-bold">
+                    Prescription Notes <small class="text-muted">(optional)</small>
+                </label>
+                <input asp-for="PrescriptionNotes" class="form-control"
+                       placeholder="e.g. Take with food, avoid alcohol..." />
+            </div>
+
+            <div id="prescriptionItems">
+                @* Items added dynamically *@
+            </div>
+
+            <p class="text-muted small mt-2" id="noItemsMsg">
+                No medications added yet. Click "Add Medication" to add one.
+            </p>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-1"></i> Save & Complete Visit
+        </button>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let itemIndex = 0;
+
+        document.getElementById('addItem').addEventListener('click', function () {
+            document.getElementById('noItemsMsg').style.display = 'none';
+            const container = document.getElementById('prescriptionItems');
+
+            const html = `
+                <div class="border rounded p-3 mb-3 item-row">
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Medication #${itemIndex + 1}</strong>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-item">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input name="Items[${itemIndex}].MedicationName" class="form-control"
+                                   placeholder="Medication name" required />
+                        </div>
+                        <div class="col-md-2">
+                            <input name="Items[${itemIndex}].Dosage" class="form-control"
+                                   placeholder="Dosage e.g. 5mg" />
+                        </div>
+                        <div class="col-md-3">
+                            <input name="Items[${itemIndex}].Frequency" class="form-control"
+                                   placeholder="e.g. Once daily" />
+                        </div>
+                        <div class="col-md-2">
+                            <input name="Items[${itemIndex}].DurationDays" class="form-control"
+                                   type="number" placeholder="Days" min="1" />
+                        </div>
+                        <div class="col-md-12">
+                            <input name="Items[${itemIndex}].Instructions" class="form-control"
+                                   placeholder="Instructions e.g. Take with food" />
+                        </div>
+                    </div>
+                </div>`;
+
+            container.insertAdjacentHTML('beforeend', html);
+            itemIndex++;
+
+            // Wire remove buttons
+            container.querySelectorAll('.remove-item').forEach(btn => {
+                btn.onclick = function () {
+                    this.closest('.item-row').remove();
+                    if (container.querySelectorAll('.item-row').length === 0)
+                        document.getElementById('noItemsMsg').style.display = 'block';
+                };
+            });
+        });
+    </script>
+}

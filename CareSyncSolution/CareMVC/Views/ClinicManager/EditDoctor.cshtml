@@ -1,0 +1,69 @@
+﻿@model CareSyncAPI.Models.DoctorProfile
+@{
+    ViewData["Title"] = "Edit Doctor";
+    var specializations = ViewBag.Specializations as List<CareSyncAPI.Models.Specialization>;
+    var selectedSpecs = ViewBag.SelectedSpecs as List<int>;
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Doctors" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Doctor — @ViewBag.DoctorName</h3>
+</div>
+
+<partial name="_SuccessErrorAlerts" />
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="EditDoctor" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">License Number</label>
+                <input name="licenseNumber" value="@Model.LicenseNumber"
+                       class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Consultation Duration (minutes)</label>
+                <input name="consultationDurationMin" type="number"
+                       value="@Model.ConsultationDurationMin"
+                       class="form-control" min="5" max="120" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Bio</label>
+                <textarea name="bio" class="form-control" rows="3">@Model.Bio</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Specializations</label>
+                <div class="row g-2">
+                    @foreach (var spec in specializations!)
+                    {
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input type="checkbox" name="specializationIds"
+                                       value="@spec.Id"
+                                       class="form-check-input"
+                                       id="spec_@spec.Id"
+                                       @(selectedSpecs!.Contains(spec.Id) ? "checked" : "") />
+                                <label class="form-check-label" for="spec_@spec.Id">
+                                    @spec.Name
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+                <a asp-action="Doctors" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -30,6 +30,9 @@ namespace CareSyncAPI.Controllers
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
                 return Unauthorized(new { message = "Invalid email or password" });
 
+            if (!user.IsActive)
+                return Unauthorized(new { message = "Your account has been deactivated. Please contact the clinic." });
+
             // Get user roles
             var roles = await _userManager.GetRolesAsync(user);
 

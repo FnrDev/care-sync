@@ -1,0 +1,115 @@
+﻿@model CareSyncAPI.Models.VisitRecord
+@{
+    ViewData["Title"] = "Visit Record";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Dashboard" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-file-medical me-2"></i>Visit Record</h3>
+</div>
+
+<partial name="_SuccessErrorAlerts" />
+
+@* Patient Info *@
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <small class="text-muted">Patient</small>
+                <p class="fw-bold mb-0">@ViewBag.PatientName</p>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted">CPR</small>
+                <p class="fw-bold mb-0"><code>@ViewBag.PatientCPR</code></p>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted">Specialization</small>
+                <p class="fw-bold mb-0">@ViewBag.Specialization</p>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted">Date</small>
+                <p class="fw-bold mb-0">@ViewBag.AppointmentDate.ToString("dd MMM yyyy")</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Visit Details *@
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Visit Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <small class="text-muted">Diagnosis</small>
+            <p class="fw-bold">@Model.Diagnosis</p>
+        </div>
+        <div class="mb-3">
+            <small class="text-muted">Doctor Notes</small>
+            <p>@Model.DoctorNotes</p>
+        </div>
+        <div class="mb-0">
+            <small class="text-muted">Treatment Plan</small>
+            <p class="mb-0">@Model.Treatment</p>
+        </div>
+    </div>
+</div>
+
+@* Prescription *@
+@if (Model.Prescription != null)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-capsule me-2"></i>Prescription</h5>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(Model.Prescription.Notes))
+            {
+                <p class="text-muted mb-3"><i class="bi bi-info-circle me-1"></i>@Model.Prescription.Notes</p>
+            }
+            @if (Model.Prescription.PrescriptionItems.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Medication</th>
+                                <th>Dosage</th>
+                                <th>Frequency</th>
+                                <th>Duration</th>
+                                <th>Instructions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Prescription.PrescriptionItems)
+                            {
+                                <tr>
+                                    <td><strong>@item.MedicationName</strong></td>
+                                    <td>@item.Dosage</td>
+                                    <td>@item.Frequency</td>
+                                    <td>@item.DurationDays days</td>
+                                    <td>@(item.Instructions ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No medications prescribed.</p>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center text-muted">
+            <i class="bi bi-capsule display-4"></i>
+            <p class="mt-2">No prescription was issued for this visit.</p>
+        </div>
+    </div>
+}

@@ -35,7 +35,21 @@ namespace CareMVC.Controllers
 
             if (!raw.IsSuccessStatusCode)
             {
-                ModelState.AddModelError("", "Invalid email or password");
+                var errorMessage = "Invalid email or password";
+                try
+                {
+                    var errorBody = await raw.Content.ReadAsStringAsync();
+                    using var doc = System.Text.Json.JsonDocument.Parse(errorBody);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        var msg = msgProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            errorMessage = msg;
+                    }
+                }
+                catch { /* fall back to generic message */ }
+
+                ModelState.AddModelError("", errorMessage);
                 return View(model);
             }
 
@@ -72,6 +86,8 @@ namespace CareMVC.Controllers
             {
                 "Patient" => RedirectToAction("Dashboard", "Patient"),
                 "Receptionist" => RedirectToAction("Dashboard", "Receptionist"),
+                "Doctor" => RedirectToAction("Dashboard", "Doctor"),
+                "ClinicManager" => RedirectToAction("Dashboard", "ClinicManager"),
                 _ => RedirectToAction("Index", "Home")
             };
         }

@@ -34,7 +34,7 @@ END
 -- ------------------------------------------------------------
 -- 2. Resolve user IDs (expects users created via DbSeeder)
 -- ------------------------------------------------------------
-DECLARE @AdminId        NVARCHAR(450) = (SELECT Id FROM AspNetUsers WHERE Email = 'admin@caresync.local');
+DECLARE @AdminId        NVARCHAR(450) = (SELECT Id FROM AspNetUsers WHERE Email = 'manager@caresync.local');
 DECLARE @ReceptionId    NVARCHAR(450) = (SELECT Id FROM AspNetUsers WHERE Email = 'reception@caresync.local');
 DECLARE @DrSmithId      NVARCHAR(450) = (SELECT Id FROM AspNetUsers WHERE Email = 'dr.smith@caresync.local');
 DECLARE @DrJonesId      NVARCHAR(450) = (SELECT Id FROM AspNetUsers WHERE Email = 'dr.jones@caresync.local');

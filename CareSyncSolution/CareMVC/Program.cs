@@ -1,3 +1,5 @@
+using CareSyncAPI.Data;
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,7 +16,7 @@ builder.Services.AddSession(options =>
 // HttpClient for API calls
 builder.Services.AddHttpClient("CareSyncAPI", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
 }).ConfigurePrimaryHttpMessageHandler(() =>
 {
     return new HttpClientHandler
@@ -26,6 +28,9 @@ builder.Services.AddHttpClient("CareSyncAPI", client =>
 
 // Register ApiService
 builder.Services.AddScoped<CareMVC.Services.IApiService, CareMVC.Services.ApiService>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -42,11 +47,10 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
 
-app.MapStaticAssets();
+app.UseStaticFiles();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

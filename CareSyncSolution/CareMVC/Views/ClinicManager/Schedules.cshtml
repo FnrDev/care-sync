@@ -1,0 +1,130 @@
+﻿@model List<CareSyncAPI.Models.DoctorProfile>
+@{
+    ViewData["Title"] = "Schedule Management";
+    var users = ViewBag.Users as Dictionary<string, string>;
+    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Dashboard" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <h3 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Schedule Management</h3>
+</div>
+
+<partial name="_SuccessErrorAlerts" />
+
+@foreach (var doctor in Model)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-person-badge me-2"></i>
+                @(users?.GetValueOrDefault(doctor.UserId, "Unknown"))
+                <small class="text-muted ms-2">@doctor.LicenseNumber</small>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Day</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < 7; i++)
+                        {
+                            var avail = doctor.DoctorAvailabilities
+                            .FirstOrDefault(a => a.DayOfWeek == i);
+                            <tr>
+                                <td><strong>@days[i]</strong></td>
+                                <td>@(avail?.StartTime.ToString("hh:mm tt") ?? "—")</td>
+                                <td>@(avail?.EndTime.ToString("hh:mm tt") ?? "—")</td>
+                                <td>
+                                    @if (avail == null)
+                                    {
+                                        <span class="badge bg-secondary">Not Set</span>
+                                    }
+                                    else if (avail.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editModal"
+                                            data-docid="@doctor.Id"
+                                            data-day="@i"
+                                            data-dayname="@days[i]"
+                                            data-start="@(avail?.StartTime.ToString("HH:mm") ?? "09:00")"
+                                            data-end="@(avail?.EndTime.ToString("HH:mm") ?? "17:00")"
+                                            data-active="@(avail?.IsActive.ToString().ToLower() ?? "true")">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@* Edit Modal *@
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateAvailability" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Schedule — <span id="modalDayName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="doctorProfileId" id="modalDocId" />
+                    <input type="hidden" name="dayOfWeek" id="modalDay" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Start Time</label>
+                        <input type="time" name="startTime" id="modalStart" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">End Time</label>
+                        <input type="time" name="endTime" id="modalEnd" class="form-control" />
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="isActive" id="modalActive"
+                               class="form-check-input" value="true" />
+                        <label class="form-check-label" for="modalActive">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('modalDocId').value = btn.dataset.docid;
+            document.getElementById('modalDay').value = btn.dataset.day;
+            document.getElementById('modalDayName').textContent = btn.dataset.dayname;
+            document.getElementById('modalStart').value = btn.dataset.start;
+            document.getElementById('modalEnd').value = btn.dataset.end;
+            document.getElementById('modalActive').checked = btn.dataset.active === 'true';
+        });
+    </script>
+}

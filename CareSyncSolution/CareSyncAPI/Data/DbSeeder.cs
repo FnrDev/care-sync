@@ -32,7 +32,7 @@ namespace CareSyncAPI.Data
             var dermatologyId = specMap["Dermatology"];
             var orthopedicsId = specMap["Orthopedics"];
 
-            var admin = await EnsureUserAsync(userManager, "admin@caresync.local", "Admin@123", "System Admin", Roles.Admin);
+            var admin = await EnsureUserAsync(userManager, "manager@caresync.local", "Manager@123", "System Admin", Roles.Admin);
             var reception = await EnsureUserAsync(userManager, "reception@caresync.local", "Reception@123", "Layla Mahmoud", Roles.Receptionist);
 
             var drSmith = await EnsureUserAsync(userManager, "dr.smith@caresync.local", "Doctor@123", "Dr. John Smith", Roles.Doctor);
@@ -240,8 +240,10 @@ namespace CareSyncAPI.Data
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (1, 'Requested');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (2, 'Confirmed');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (3, 'CheckedIn');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (4, 'InProgress');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (5, 'Completed');
                 INSERT INTO [AppointmentStatus] (Id, Name) VALUES (6, 'Cancelled');
+                INSERT INTO [AppointmentStatus] (Id, Name) VALUES (7, 'Missed');
                 SET IDENTITY_INSERT [AppointmentStatus] OFF;
             ");
         }

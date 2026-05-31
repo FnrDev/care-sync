@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CareMVC.Controllers
 {
-    public class TrackingController : Controller
+    public class TrackingController : BaseController
     {
         private readonly IApiService _api;
 
