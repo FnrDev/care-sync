@@ -1,0 +1,35 @@
+name: Deploy CareSync.Report
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'CareSyncSolution/ReportingApplication/**'
+      - '.github/workflows/deploy-report.yml'
+  workflow_dispatch:
+env:
+  AZURE_WEBAPP_NAME: reportsCareSync
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_PATH: CareSyncSolution/ReportingApplication/ReportingApplication.csproj
+  PUBLISH_OUTPUT: ${{ github.workspace }}/publish
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+      - name: Build in Release configuration
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+      - name: Publish to output folder
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ${{ env.PUBLISH_OUTPUT }}
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_REPORT_PUBLISH_PROFILE }}
+          package: ${{ env.PUBLISH_OUTPUT }}
