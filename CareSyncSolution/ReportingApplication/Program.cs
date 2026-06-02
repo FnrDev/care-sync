@@ -20,7 +20,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpClient("CareSyncApi", client =>
 {
     client.BaseAddress = new Uri(
-        builder.Configuration["ApiSettings:BaseUrl"]!
+        builder.Configuration["ApiBaseUrl"]!
     );
 });
 
