@@ -114,6 +114,49 @@
                     </a>
                 </div>
             }
+            @if (ViewBag.UserRole == "Manager")
+            {
+                <div class="col-md-3">
+                    <a asp-controller="ClinicManager" asp-action="Dashboard" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <div class="cs-action-title">Dashboard</div>
+                            <div class="cs-action-sub">Clinic overview and stats</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="ClinicManager" asp-action="Doctors" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-person-badge"></i></div>
+                        <div>
+                            <div class="cs-action-title">Doctors</div>
+                            <div class="cs-action-sub">Manage doctor profiles</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="ClinicManager" asp-action="Schedules" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-calendar-week"></i></div>
+                        <div>
+                            <div class="cs-action-title">Schedules</div>
+                            <div class="cs-action-sub">Manage doctor availability</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a asp-controller="ClinicManager" asp-action="Users" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-people"></i></div>
+                        <div>
+                            <div class="cs-action-title">Users</div>
+                            <div class="cs-action-sub">Manage system users</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+            }
         </div>
     </div>
 }
