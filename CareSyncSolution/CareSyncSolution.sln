@@ -7,9 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareMVC", "CareMVC\CareMVC.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareSyncAPI", "CareSyncAPI\CareSyncAPI.csproj", "{697EB774-556C-4A24-8E74-315F70F42B01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareSyncReport", "CareSyncReport\CareSyncReport.csproj", "{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportingApplication", "..\..\ReportingApplication\ReportingApplication\ReportingApplication.csproj", "{F0D04EF4-847A-B1FD-BB31-A4545AA9293B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportingApplication", "ReportingApplication\ReportingApplication.csproj", "{F0D04EF4-847A-B1FD-BB31-A4545AA9293B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{697EB774-556C-4A24-8E74-315F70F42B01}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA510DB0-2E28-4BD2-9BD0-882303A6DB88}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F0D04EF4-847A-B1FD-BB31-A4545AA9293B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F0D04EF4-847A-B1FD-BB31-A4545AA9293B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0D04EF4-847A-B1FD-BB31-A4545AA9293B}.Release|Any CPU.ActiveCfg = Release|Any CPU
