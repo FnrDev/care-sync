@@ -8,7 +8,7 @@ namespace CareSyncAPI.Data
     {
         public static class Roles
         {
-            public const string Admin = "Admin";
+            public const string ClinicManager = "ClinicManager";
             public const string Doctor = "Doctor";
             public const string Patient = "Patient";
             public const string Receptionist = "Receptionist";
@@ -32,7 +32,7 @@ namespace CareSyncAPI.Data
             var dermatologyId = specMap["Dermatology"];
             var orthopedicsId = specMap["Orthopedics"];
 
-            var admin = await EnsureUserAsync(userManager, "manager@caresync.local", "Manager@123", "System Admin", Roles.Admin);
+            var admin = await EnsureUserAsync(userManager, "manager@caresync.local", "Manager@123", "System Admin", Roles.ClinicManager);
             var reception = await EnsureUserAsync(userManager, "reception@caresync.local", "Reception@123", "Layla Mahmoud", Roles.Receptionist);
 
             var drSmith = await EnsureUserAsync(userManager, "dr.smith@caresync.local", "Doctor@123", "Dr. John Smith", Roles.Doctor);
@@ -224,7 +224,7 @@ namespace CareSyncAPI.Data
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
         {
-            foreach (var role in new[] { Roles.Admin, Roles.Doctor, Roles.Patient, Roles.Receptionist })
+            foreach (var role in new[] { Roles.ClinicManager, Roles.Doctor, Roles.Patient, Roles.Receptionist })
             {
                 if (!await roleManager.RoleExistsAsync(role))
                     await roleManager.CreateAsync(new IdentityRole(role));
