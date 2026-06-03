@@ -52,29 +52,6 @@
                                 </a>
                             </li>
                         }
-                        @if (ViewBag.UserRole == "Manager")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="ClinicManager" asp-action="Dashboard">
-                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="ClinicManager" asp-action="Doctors">
-                                    <i class="bi bi-person-badge me-1"></i>Doctors
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="ClinicManager" asp-action="Schedules">
-                                    <i class="bi bi-calendar-week me-1"></i>Schedules
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="ClinicManager" asp-action="Users">
-                                    <i class="bi bi-people me-1"></i>Users
-                                </a>
-                            </li>
-                        }
                     </ul>
                     <ul class="navbar-nav align-items-center gap-2">
                         @{
@@ -131,6 +108,31 @@
                                         <li>
                                             <a class="dropdown-item" asp-controller="Doctor" asp-action="TrackingBoard">
                                                 <i class="bi bi-display me-2"></i>Live Board
+                                            </a>
+                                        </li>
+                                    </ul>
+                                }
+                                else if (ViewBag.UserRole == "Manager")
+                                {
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="ClinicManager" asp-action="Dashboard">
+                                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="ClinicManager" asp-action="Doctors">
+                                                <i class="bi bi-person-badge me-2"></i>Doctors
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="ClinicManager" asp-action="Schedules">
+                                                <i class="bi bi-calendar-week me-2"></i>Schedules
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="ClinicManager" asp-action="Users">
+                                                <i class="bi bi-people me-2"></i>Users
                                             </a>
                                         </li>
                                     </ul>
