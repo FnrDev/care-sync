@@ -114,6 +114,29 @@
                     </a>
                 </div>
             }
+            @if (ViewBag.UserRole == "Doctor")
+            {
+                <div class="col-md-6">
+                    <a asp-controller="Doctor" asp-action="Dashboard" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <div class="cs-action-title">Doctor Dashboard</div>
+                            <div class="cs-action-sub">View your appointments and visits</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a asp-controller="Doctor" asp-action="TrackingBoard" class="cs-action-card">
+                        <div class="cs-action-icon"><i class="bi bi-display"></i></div>
+                        <div>
+                            <div class="cs-action-title">Live Board</div>
+                            <div class="cs-action-sub">Track today's appointment queue</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                </div>
+            }
             @if (ViewBag.UserRole == "Manager")
             {
                 <div class="col-md-3">
