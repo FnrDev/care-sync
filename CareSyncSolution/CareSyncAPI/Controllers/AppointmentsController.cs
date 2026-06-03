@@ -187,7 +187,7 @@ namespace CareSyncAPI.Controllers
 
         // GET /api/appointments/today - today's queue for receptionist
         [HttpGet("today")]
-        [Authorize(Roles = "Receptionist,ClinicManager")]
+        [Authorize(Roles = "Receptionist,Manager")]
         public async Task<IActionResult> GetToday()
         {
             var today = DateTime.Today;

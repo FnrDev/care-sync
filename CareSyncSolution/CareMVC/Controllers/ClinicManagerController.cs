@@ -16,7 +16,7 @@ namespace CareMVC.Controllers
         }
 
         private bool IsClinicManagerAuthorized() =>
-            IsAuthenticated && UserRole == "ClinicManager";
+            IsAuthenticated && UserRole == "Manager";
 
         // GET /ClinicManager/Dashboard
         public async Task<IActionResult> Dashboard()

@@ -7,7 +7,7 @@ namespace CareSyncAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "ClinicManager")]
+    [Authorize(Roles = "Manager")]
     public class ReportsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
