@@ -19,7 +19,7 @@ namespace ReportingApplication.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string?> LoginAsync(string email, string password)
+        public async Task<LoginResponse?> LoginAsync(string email, string password)
         {
             var client = _httpClientFactory.CreateClient("CareSyncApi");
 
@@ -39,12 +39,10 @@ namespace ReportingApplication.Services
 
             var body = await response.Content.ReadAsStringAsync();
 
-            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(
+            return JsonSerializer.Deserialize<LoginResponse>(
                 body,
                 _jsonOptions
             );
-
-            return loginResponse?.Token;
         }
 
         public async Task<AppointmentStatsDto?> GetAppointmentStatsAsync(string token)
